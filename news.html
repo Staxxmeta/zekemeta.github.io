@@ -45,7 +45,6 @@
   <a class="nav-logo" href="/">ZEKEMETA</a>
   <a class="nav-back" href="/">← BACK</a>
 </nav>
-
 <div class="feed-hero">
   <p class="feed-eyebrow">// SIGNAL FEED — AI POWERED</p>
   <h1 class="feed-title">The news that<br/><span>actually matters.</span></h1>
@@ -63,29 +62,21 @@
   <div class="feed-status" id="feedStatus">— LOADING SIGNAL —</div>
   <div id="newsFeed"></div>
 </div>
-
 <script>
 let allArticles=[], currentFilter='all';
-
-// Key stored in parts so GitHub doesn't flag it
-const p1='sk-ant-api03-spHJfeTaQgVGcYAKskaNXucm-ljw-GknZ3qVhF-etlO';
-const p2='KArxPw5j16_U7TEseMDn15eC9FiIvVGsZ5hRoXX9bvA-o8lckQAA';
-const AK=p1+p2;
-
+const WORKER='https://zekemetanews.toddbliv.workers.dev';
 const categories={
-  crypto:{label:'CRYPTO / DOGE',prompt:'Dogecoin Bitcoin crypto markets DOGE price regulation'},
-  money:{label:'SOUND MONEY',prompt:'gold price silver Federal Reserve inflation dollar BRICS petrodollar'},
-  geo:{label:'GEOPOLITICS',prompt:'military aviation US military B-2 bomber aircraft carrier NATO defense'},
-  tech:{label:'DEPIN / AI / TECH',prompt:'DePIN decentralized infrastructure AI news automation Helium network'}
+  crypto:{label:'CRYPTO / DOGE'},
+  money:{label:'SOUND MONEY'},
+  geo:{label:'GEOPOLITICS'},
+  tech:{label:'DEPIN / AI / TECH'}
 };
-
 function setFilter(cat,btn){
   currentFilter=cat;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderFeed();
 }
-
 function renderFeed(){
   const feed=document.getElementById('newsFeed');
   const filtered=currentFilter==='all'?allArticles:allArticles.filter(a=>a.category===currentFilter);
@@ -99,7 +90,6 @@ function renderFeed(){
       <div class="news-meta"><span class="news-source">${a.source}</span><span>${a.time}</span></div>
     </div>`).join('');
 }
-
 function showSkeleton(){
   document.getElementById('newsFeed').innerHTML=Array(6).fill(`
     <div class="skeleton">
@@ -110,59 +100,13 @@ function showSkeleton(){
       <div class="skel-line" style="width:60%;height:11px;"></div>
     </div>`).join('');
 }
-
-async function fetchCategoryNews(cat,info){
-  try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':AK,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1500,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:`Search for 3 recent important news stories about: ${info.prompt}.
-
-Return ONLY a valid JSON array with exactly 3 objects. Each object must have these keys:
-"headline" (string, max 15 words),
-"summary" (string, 1-2 sentences max 50 words),
-"source" (string, publication name only),
-"url" (string, full URL or empty string),
-"time" (string, like "Today" or "Apr 3")
-
-Example format:
-[{"headline":"Example headline here","summary":"Brief summary.","source":"Reuters","url":"https://example.com","time":"Today"}]
-
-Return raw JSON array only. No markdown formatting. No backticks. No explanation text.`}]
-      })
-    });
-    const data=await res.json();
-    // Find text block from response
-    const textBlocks=data.content?.filter(b=>b.type==='text')||[];
-    for(const block of textBlocks){
-      const text=block.text.trim();
-      // Try to extract JSON array
-      const match=text.match(/\[[\s\S]*\]/);
-      if(match){
-        try{
-          const parsed=JSON.parse(match[0]);
-          if(Array.isArray(parsed)&&parsed.length>0){
-            return parsed.map(a=>({...a,category:cat}));
-          }
-        }catch(e){}
-      }
-    }
-    return [];
-  } catch(e) {
-    console.error('Fetch error:',e);
-    return [];
-  }
+async function fetchCategoryNews(cat){
+  try{
+    const res=await fetch(`${WORKER}/?cat=${cat}`);
+    const articles=await res.json();
+    return Array.isArray(articles)?articles.map(a=>({...a,category:cat})):[];
+  }catch(e){return[];}
 }
-
 async function loadFeed(){
   const btn=document.getElementById('refreshBtn');
   btn.classList.add('loading');
@@ -171,25 +115,20 @@ async function loadFeed(){
   document.getElementById('feedStatus').textContent='— SCANNING FEEDS —';
   try{
     const results=await Promise.allSettled(
-      Object.entries(categories).map(([cat,info])=>fetchCategoryNews(cat,info))
+      Object.keys(categories).map(cat=>fetchCategoryNews(cat))
     );
-    allArticles=results
-      .filter(r=>r.status==='fulfilled')
-      .flatMap(r=>r.value);
+    allArticles=results.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
     const now=new Date();
-    document.getElementById('lastUpdated').textContent=
-      `Live signal · Updated ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+    document.getElementById('lastUpdated').textContent=`Live signal · Updated ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
     renderFeed();
-  }catch(e){
+  }catch{
     document.getElementById('newsFeed').innerHTML='<div class="feed-error"><span>⚠️</span>Signal lost. Tap refresh to try again.</div>';
     document.getElementById('feedStatus').textContent='— CONNECTION ERROR —';
   }
   btn.classList.remove('loading');
   btn.innerHTML='↻ &nbsp;REFRESH FEED';
 }
-
 loadFeed();
 </script>
-
 </body>
 </html>
