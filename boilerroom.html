@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boiler Room — License Exam Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --card: #161616;
+  --border: #2a2a2a;
+  --accent: #ff6b00;
+  --accent2: #ffaa00;
+  --blue: #4d9fff;
+  --green: #00c97a;
+  --red: #ff3c3c;
+  --text: #e8e8e8;
+  --muted: #666;
+  --dim: #333;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lato', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* STEEL TEXTURE */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255,255,255,0.012) 2px,
+    rgba(255,255,255,0.012) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; position:relative; z-index:1; min-height:100vh; }
+.screen.active { display:block; }
+
+/* ── HOME ── */
+#homeScreen {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding: 0 0 40px;
+}
+#homeScreen.active { display:flex; }
+
+.home-header {
+  width:100%;
+  background: linear-gradient(180deg, #1a0800 0%, #0a0a0a 100%);
+  border-bottom: 3px solid var(--accent);
+  padding: 32px 24px 28px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.home-header::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,107,0,0.15) 0%, transparent 70%);
+}
+
+.gauge-icon {
+  font-size: 56px;
+  line-height:1;
+  margin-bottom: 12px;
+  position:relative;
+  z-index:1;
+}
+
+.app-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--accent);
+  text-shadow: 0 0 30px rgba(255,107,0,0.5);
+  position:relative;
+  z-index:1;
+}
+
+.app-sub {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform:uppercase;
+  margin-top: 6px;
+  position:relative;
+  z-index:1;
+}
+
+.home-body { width:100%; max-width:500px; padding: 28px 20px 0; }
+
+.section-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform:uppercase;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+/* license cards */
+.license-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.lic-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 14px;
+  cursor:pointer;
+  transition: all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+.lic-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.lic-card:hover::before, .lic-card.selected::before { transform:scaleX(1); }
+.lic-card:hover { border-color: var(--accent); transform:translateY(-2px); }
+.lic-card.selected { border-color: var(--accent); background: rgba(255,107,0,0.08); }
+
+.lic-class {
+  font-family: 'Oswald', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height:1;
+}
+.lic-name { font-size: 12px; color: var(--text); margin-top: 4px; font-weight:700; }
+.lic-desc { font-size: 11px; color: var(--muted); margin-top: 3px; line-height:1.4; }
+.lic-count {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 10px;
+  color: var(--accent2);
+  margin-top: 8px;
+}
+
+/* mode buttons */
+.mode-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.mode-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  cursor:pointer;
+  transition: all 0.2s;
+  text-align:center;
+  color: var(--text);
+}
+.mode-btn:hover { border-color: var(--blue); color: var(--blue); }
+.mode-btn.selected { border-color: var(--blue); background: rgba(77,159,255,0.08); color: var(--blue); }
+.mode-icon { font-size: 24px; margin-bottom: 6px; }
+.mode-name { font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:1px; }
+.mode-desc { font-size:10px; color:var(--muted); margin-top:2px; }
+
+.start-btn {
+  width:100%;
+  background: var(--accent);
+  color: #000;
+  border:none;
+  border-radius: 10px;
+  padding: 18px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  cursor:pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+.start-btn:hover { background: #ff8c2a; transform:translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,0,0.3); }
+.start-btn:active { transform:translateY(0); }
+
+/* quick access */
+.quick-grid {
+  display:grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+}
+
+.quick-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 8px;
+  cursor:pointer;
+  transition: all 0.2s;
+  text-align:center;
+  color: var(--text);
+}
+.quick-btn:hover { border-color:var(--green); color:var(--green); transform:translateY(-2px); }
+.quick-icon { font-size:22px; margin-bottom:5px; }
+.quick-name { font-size:10px; font-family:'Oswald',sans-serif; letter-spacing:1px; color:var(--muted); }
+
+/* progress bar */
+.progress-strip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.progress-label { font-family:'Source Code Pro',monospace; font-size:11px; color:var(--muted); min-width:60px; }
+.progress-bar { flex:1; height:6px; background:var(--dim); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:3px; transition: width 0.5s ease; }
+.progress-pct { font-family:'Oswald',sans-serif; font-size:16px; color:var(--accent); min-width:40px; text-align:right; }
+
+/* ── EXAM SCREEN ── */
+#examScreen { padding: 0; }
+
+.exam-header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 14px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+.back-btn {
+  background:transparent;
+  border: 1px solid var(--border);
+  color:var(--muted);
+  padding: 6px 12px;
+  border-radius:6px;
+  font-family:'Source Code Pro',monospace;
+  font-size:11px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.back-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+.exam-title {
+  font-family:'Oswald',sans-serif;
+  font-size:16px;
+  letter-spacing:2px;
+  color:var(--accent);
+}
+
+.q-counter {
+  font-family:'Source Code Pro',monospace;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.exam-progress {
+  height:3px;
+  background:var(--dim);
+}
+.exam-progress-fill {
+  height:100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+.exam-body { padding: 24px 20px; max-width:600px; margin:0 auto; }
+
+.q-category {
+  font-family:'Source Code Pro',monospace;
+  font-size:10px;
+  color:var(--accent2);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+
+.q-text {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 24px;
+  font-weight:400;
+}
+
+.answers { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+
+.answer-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align:left;
+  cursor:pointer;
+  transition: all 0.15s;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  color: var(--text);
+  font-size:14px;
+  line-height:1.5;
+}
+.answer-btn:hover:not(:disabled) { border-color:var(--blue); background:rgba(77,159,255,0.06); }
+.answer-btn.correct { border-color:var(--green) !important; background:rgba(0,201,122,0.1) !important; color:var(--green); }
+.answer-btn.wrong { border-color:var(--red) !important; background:rgba(255,60,60,0.1) !important; color:var(--red); }
+.answer-btn.reveal { border-color:var(--green); background:rgba(0,201,122,0.05); }
+.answer-btn:disabled { cursor:default; }
+
+.ans-letter {
+  font-family:'Oswald',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  min-width:22px;
+  color:var(--muted);
+}
+.answer-btn.correct .ans-letter { color:var(--green); }
+.answer-btn.wrong .ans-letter { color:var(--red); }
+.answer-btn.reveal .ans-letter { color:var(--green); }
+
+.explanation {
+  background: rgba(255,170,0,0.06);
+  border: 1px solid rgba(255,170,0,0.2);
+  border-radius:10px;
+  padding:14px 16px;
+  margin-bottom:20px;
+  font-size:13px;
+  line-height:1.6;
+  color: var(--text);
+  display:none;
+}
+.explanation.show { display:block; }
+.explanation strong { color:var(--accent2); }
+
+.next-btn {
+  width:100%;
+  background: var(--accent);
+  color:#000;
+  border:none;
+  border-radius:10px;
+  padding:16px;
+  font-family:'Oswald',sans-serif;
+  font-size:18px;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:none;
+}
+.next-btn.show { display:block; }
+.next-btn:hover { background:#ff8c2a; }
+
+/* ── RESULTS SCREEN ── */
+#resultsScreen { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 20px; }
+#resultsScreen.active { display:flex; }
+
+.result-circle {
+  width:140px; height:140px;
+  border-radius:50%;
+  border:4px solid var(--accent);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:24px;
+  position:relative;
+}
+.result-circle::before {
+  content:'';
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  border:1px solid rgba(255,107,0,0.2);
+}
+.result-pct { font-family:'Oswald',sans-serif; font-size:48px; font-weight:700; color:var(--accent); line-height:1; }
+.result-label { font-family:'Source Code Pro',monospace; font-size:10px; color:var(--muted); letter-spacing:2px; }
+
+.result-title { font-family:'Oswald',sans-serif; font-size:28px; letter-spacing:3px; margin-bottom:8px; }
+.result-sub { font-size:13px; color:var(--muted); margin-bottom:32px; text-align:center; }
+
+.result-stats {
+  display:grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:12px;
+  width:100%;
+  max-width:360px;
+  margin-bottom:32px;
+}
+.r-stat { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center; }
+.r-stat-val { font-family:'Oswald',sans-serif; font-size:28px; }
+.r-stat-val.g { color:var(--green); }
+.r-stat-val.r { color:var(--red); }
+.r-stat-val.b { color:var(--blue); }
+.r-stat-key { font-size:10px; color:var(--muted); margin-top:3px; font-family:'Source Code Pro',monospace; }
+
+.result-btns { display:flex; flex-direction:column; gap:10px; width:100%; max-width:360px; }
+.r-btn {
+  padding:14px;
+  border-radius:10px;
+  font-family:'Oswald',sans-serif;
+  font-size:16px;
+  letter-spacing:2px;
+  cursor:pointer;
+  border:none;
+  transition:all 0.2s;
+}
+.r-btn.primary { background:var(--accent); color:#000; }
+.r-btn.secondary { background:var(--card); color:var(--text); border:1px solid var(--border); }
+.r-btn:hover { transform:translateY(-2px); }
+
+/* ── REFERENCE SCREEN ── */
+#refScreen { display:none; }
+#refScreen.active { display:block; }
+
+.ref-header {
+  background:var(--surface);
+  border-bottom:2px solid var(--border);
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.ref-title { font-family:'Oswald',sans-serif; font-size:18px; letter-spacing:2px; color:var(--accent2); }
+
+.ref-body { padding:20px; max-width:600px; margin:0 auto; }
+
+.ref-section { margin-bottom:24px; }
+.ref-section-title {
+  font-family:'Oswald',sans-serif;
+  font-size:14px;
+  letter-spacing:2px;
+  color:var(--accent);
+  border-bottom:1px solid var(--border);
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+
+.ref-table { width:100%; border-collapse:collapse; }
+.ref-table th {
+  font-family:'Source Code Pro',monospace;
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:1px;
+  text-align:left;
+  padding:6px 10px;
+  border-bottom:1px solid var(--border);
+}
+.ref-table td {
+  font-size:12px;
+  padding:8px 10px;
+  border-bottom:1px solid rgba(42,42,42,0.5);
+  font-family:'Source Code Pro',monospace;
+}
+.ref-table tr:hover td { background:rgba(255,255,255,0.02); }
+.ref-table td:first-child { color:var(--accent2); }
+
+.ref-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  margin-bottom:10px;
+  font-size:13px;
+  line-height:1.6;
+}
+.ref-card strong { color:var(--accent2); font-family:'Oswald',sans-serif; letter-spacing:1px; font-size:14px; }
+
+/* ── FLASHCARD SCREEN ── */
+#flashScreen { display:none; }
+#flashScreen.active { display:block; }
+
+.flash-body { padding:24px 20px; max-width:500px; margin:0 auto; }
+
+.flashcard {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:32px 24px;
+  min-height:200px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:20px;
+  transition: all 0.3s;
+  position:relative;
+  overflow:hidden;
+}
+.flashcard::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.flashcard:hover { border-color:var(--accent); }
+
+.flash-side {
+  font-family:'Source Code Pro',monospace;
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:2px;
+  margin-bottom:16px;
+}
+.flash-text { font-size:16px; line-height:1.6; }
+.flash-tap { font-size:11px; color:var(--dim); margin-top:16px; }
+
+.flash-controls { display:flex; gap:10px; }
+.flash-btn {
+  flex:1;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  font-family:'Oswald',sans-serif;
+  font-size:15px;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.flash-btn.knew { background:rgba(0,201,122,0.15); color:var(--green); border:1px solid var(--green); }
+.flash-btn.skip { background:rgba(255,60,60,0.12); color:var(--red); border:1px solid var(--red); }
+.flash-btn:hover { transform:translateY(-2px); }
+
+.flash-progress {
+  font-family:'Source Code Pro',monospace;
+  font-size:11px;
+  color:var(--muted);
+  text-align:center;
+  margin-bottom:16px;
+}
+
+/* animations */
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.exam-body { animation: slideIn 0.3s ease; }
+
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+.shake { animation: shake 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════ -->
+<div id="homeScreen" class="screen active">
+  <div class="home-header">
+    <div class="gauge-icon">🔥</div>
+    <div class="app-title">BOILER ROOM</div>
+    <div class="app-sub">National License Exam Prep</div>
+  </div>
+
+  <div class="home-body">
+
+    <!-- PROGRESS -->
+    <div class="progress-strip" id="progressStrip" style="display:none">
+      <div class="progress-label">PROGRESS</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-pct" id="progressPct">0%</div>
+    </div>
+
+    <!-- LICENSE CLASS -->
+    <div class="section-label">Select License Class</div>
+    <div class="license-grid">
+      <div class="lic-card selected" onclick="selectClass('4th')" id="cls_4th">
+        <div class="lic-class">4TH</div>
+        <div class="lic-name">Fourth Class</div>
+        <div class="lic-desc">Entry level. Low-pressure boilers & basic systems</div>
+        <div class="lic-count">25 QUESTIONS</div>
+      </div>
+      <div class="lic-card" onclick="selectClass('3rd')" id="cls_3rd">
+        <div class="lic-class">3RD</div>
+        <div class="lic-name">Third Class</div>
+        <div class="lic-desc">Medium pressure, steam systems & controls</div>
+        <div class="lic-count">25 QUESTIONS</div>
+      </div>
+      <div class="lic-card" onclick="selectClass('2nd')" id="cls_2nd">
+        <div class="lic-class">2ND</div>
+        <div class="lic-name">Second Class</div>
+        <div class="lic-desc">High pressure, multiple boilers & supervision</div>
+        <div class="lic-count">25 QUESTIONS</div>
+      </div>
+      <div class="lic-card" onclick="selectClass('1st')" id="cls_1st">
+        <div class="lic-class">1ST</div>
+        <div class="lic-name">First Class</div>
+        <div class="lic-desc">Master level. All systems, plant management</div>
+        <div class="lic-count">25 QUESTIONS</div>
+      </div>
+    </div>
+
+    <!-- MODE -->
+    <div class="section-label">Study Mode</div>
+    <div class="mode-grid">
+      <div class="mode-btn selected" onclick="selectMode('exam')" id="mode_exam">
+        <div class="mode-icon">📝</div>
+        <div class="mode-name">EXAM MODE</div>
+        <div class="mode-desc">Timed, scored like real test</div>
+      </div>
+      <div class="mode-btn" onclick="selectMode('study')" id="mode_study">
+        <div class="mode-icon">📖</div>
+        <div class="mode-name">STUDY MODE</div>
+        <div class="mode-desc">See answers & explanations</div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startExam()">START EXAM →</button>
+
+    <!-- QUICK ACCESS -->
+    <div class="section-label">Quick Access</div>
+    <div class="quick-grid">
+      <div class="quick-btn" onclick="showRef()">
+        <div class="quick-icon">📊</div>
+        <div class="quick-name">REFERENCE</div>
+      </div>
+      <div class="quick-btn" onclick="showFlash()">
+        <div class="quick-icon">🃏</div>
+        <div class="quick-name">FLASHCARDS</div>
+      </div>
+      <div class="quick-btn" onclick="showStats()">
+        <div class="quick-icon">📈</div>
+        <div class="quick-name">MY STATS</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     EXAM SCREEN
+══════════════════════════════════════ -->
+<div id="examScreen" class="screen">
+  <div class="exam-header">
+    <button class="back-btn" onclick="goHome()">← HOME</button>
+    <div class="exam-title" id="examTitle">4TH CLASS</div>
+    <div class="q-counter" id="qCounter">1 / 25</div>
+  </div>
+  <div class="exam-progress"><div class="exam-progress-fill" id="examProgressFill" style="width:0%"></div></div>
+
+  <div class="exam-body" id="examBody">
+    <div class="q-category" id="qCategory">BOILER SAFETY</div>
+    <div class="q-text" id="qText">Loading question...</div>
+    <div class="answers" id="answers"></div>
+    <div class="explanation" id="explanation"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">NEXT QUESTION →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RESULTS SCREEN
+══════════════════════════════════════ -->
+<div id="resultsScreen" class="screen">
+  <div class="result-circle">
+    <div class="result-pct" id="resultPct">0%</div>
+    <div class="result-label">SCORE</div>
+  </div>
+  <div class="result-title" id="resultTitle">GOOD JOB</div>
+  <div class="result-sub" id="resultSub">Keep studying to pass your exam</div>
+  <div class="result-stats">
+    <div class="r-stat"><div class="r-stat-val g" id="rCorrect">0</div><div class="r-stat-key">CORRECT</div></div>
+    <div class="r-stat"><div class="r-stat-val r" id="rWrong">0</div><div class="r-stat-key">WRONG</div></div>
+    <div class="r-stat"><div class="r-stat-val b" id="rTotal">0</div><div class="r-stat-key">TOTAL</div></div>
+  </div>
+  <div class="result-btns">
+    <button class="r-btn primary" onclick="startExam()">RETAKE EXAM</button>
+    <button class="r-btn secondary" onclick="goHome()">BACK TO HOME</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REFERENCE SCREEN
+══════════════════════════════════════ -->
+<div id="refScreen" class="screen">
+  <div class="ref-header">
+    <button class="back-btn" onclick="goHome()">← HOME</button>
+    <div class="ref-title">QUICK REFERENCE</div>
+  </div>
+  <div class="ref-body">
+
+    <div class="ref-section">
+      <div class="ref-section-title">STEAM TABLES — SATURATED STEAM</div>
+      <table class="ref-table">
+        <tr><th>PRESSURE (PSI)</th><th>TEMP (°F)</th><th>LATENT HEAT (BTU/LB)</th></tr>
+        <tr><td>0</td><td>212</td><td>970</td></tr>
+        <tr><td>15</td><td>250</td><td>945</td></tr>
+        <tr><td>50</td><td>298</td><td>912</td></tr>
+        <tr><td>100</td><td>328</td><td>889</td></tr>
+        <tr><td>150</td><td>358</td><td>863</td></tr>
+        <tr><td>200</td><td>382</td><td>843</td></tr>
+        <tr><td>300</td><td>417</td><td>810</td></tr>
+        <tr><td>500</td><td>467</td><td>755</td></tr>
+        <tr><td>1000</td><td>545</td><td>649</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">BOILER CLASSIFICATIONS</div>
+      <div class="ref-card"><strong>LOW PRESSURE</strong><br>Steam boilers operating at or below 15 PSI. Hot water boilers below 160 PSI / 250°F.</div>
+      <div class="ref-card"><strong>HIGH PRESSURE</strong><br>Steam boilers operating above 15 PSI. Hot water boilers above 160 PSI or 250°F.</div>
+      <div class="ref-card"><strong>POWER BOILER</strong><br>High pressure steam boiler used to generate power. Governed by ASME Section I.</div>
+      <div class="ref-card"><strong>HEATING BOILER</strong><br>Low pressure boiler used for space heating. Governed by ASME Section IV.</div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">SAFETY VALVE REQUIREMENTS</div>
+      <div class="ref-card"><strong>SET PRESSURE</strong><br>Must not exceed the maximum allowable working pressure (MAWP) of the boiler.</div>
+      <div class="ref-card"><strong>CAPACITY</strong><br>Must be able to discharge all steam the boiler can generate without pressure rising more than 6% above the highest set pressure.</div>
+      <div class="ref-card"><strong>TESTING</strong><br>Must be manually tested at least once per year by lifting the test lever when boiler is at operating pressure.</div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">KEY FORMULAS</div>
+      <table class="ref-table">
+        <tr><th>FORMULA</th><th>DESCRIPTION</th></tr>
+        <tr><td>BHP = EDR / 240</td><td>Boiler Horsepower from EDR</td></tr>
+        <tr><td>1 BHP = 33,475 BTU/hr</td><td>Boiler horsepower conversion</td></tr>
+        <tr><td>EDR = Sq Ft × 240</td><td>Equivalent Direct Radiation</td></tr>
+        <tr><td>1 BHP = 34.5 lbs steam/hr</td><td>From & at 212°F</td></tr>
+        <tr><td>psia = psig + 14.7</td><td>Absolute vs gauge pressure</td></tr>
+        <tr><td>°R = °F + 459.67</td><td>Rankine temperature scale</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">WATER TREATMENT RANGES</div>
+      <table class="ref-table">
+        <tr><th>PARAMETER</th><th>RECOMMENDED RANGE</th></tr>
+        <tr><td>pH</td><td>10.5 – 11.5</td></tr>
+        <tr><td>Total Dissolved Solids</td><td>&lt; 3,500 ppm</td></tr>
+        <tr><td>Total Alkalinity</td><td>200 – 700 ppm</td></tr>
+        <tr><td>Sulfite (O2 scavenger)</td><td>20 – 40 ppm</td></tr>
+        <tr><td>Phosphate</td><td>20 – 40 ppm</td></tr>
+        <tr><td>Hardness</td><td>0 ppm (zero)</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">ASME CODE SECTIONS</div>
+      <div class="ref-card"><strong>SECTION I</strong> — Power Boilers</div>
+      <div class="ref-card"><strong>SECTION IV</strong> — Heating Boilers</div>
+      <div class="ref-card"><strong>SECTION VIII</strong> — Pressure Vessels</div>
+      <div class="ref-card"><strong>SECTION IX</strong> — Welding & Brazing Qualifications</div>
+      <div class="ref-card"><strong>SECTION XI</strong> — In-Service Inspection</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FLASHCARD SCREEN
+══════════════════════════════════════ -->
+<div id="flashScreen" class="screen">
+  <div class="ref-header">
+    <button class="back-btn" onclick="goHome()">← HOME</button>
+    <div class="ref-title">FLASHCARDS</div>
+  </div>
+  <div class="flash-body">
+    <div class="flash-progress" id="flashProgress">Card 1 of 20</div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flash-side" id="flashSide">TERM</div>
+      <div class="flash-text" id="flashText">Loading...</div>
+      <div class="flash-tap">TAP TO FLIP</div>
+    </div>
+    <div class="flash-controls">
+      <button class="flash-btn skip" onclick="flashNext(false)">✗ MISSED IT</button>
+      <button class="flash-btn knew" onclick="flashNext(true)">✓ GOT IT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// QUESTION BANK
+// ══════════════════════════════════════
+const QUESTIONS = {
+  '4th': [
+    { cat:'BOILER SAFETY', q:'What is the primary purpose of a safety valve on a boiler?', a:1, opts:['To control water level','To relieve excess pressure','To regulate steam flow','To measure temperature'], exp:'The safety valve is the most critical safety device on a boiler. It automatically opens to release excess pressure when it exceeds the maximum allowable working pressure (MAWP), preventing a dangerous overpressure condition or explosion.' },
+    { cat:'BOILER BASICS', q:'What is the maximum operating pressure for a low-pressure steam boiler?', a:0, opts:['15 PSI','30 PSI','50 PSI','100 PSI'], exp:'By definition, a low-pressure steam boiler operates at or below 15 PSI gauge pressure. Above 15 PSI, the boiler is classified as a high-pressure boiler and requires a higher-class operator license.' },
+    { cat:'WATER TREATMENT', q:'What is the recommended pH range for boiler water?', a:2, opts:['7.0 – 8.0','8.5 – 9.5','10.5 – 11.5','12.0 – 14.0'], exp:'Boiler water should be maintained at a pH of 10.5 to 11.5. This alkaline environment protects against corrosion. Too low causes acid corrosion; too high causes caustic embrittlement.' },
+    { cat:'BOILER SAFETY', q:'How often must a safety valve be manually tested?', a:3, opts:['Daily','Weekly','Monthly','At least once per year'], exp:'ASME code requires safety valves to be manually tested at least once per year by lifting the test lever when the boiler is at or near operating pressure to ensure they operate freely.' },
+    { cat:'COMBUSTION', q:'What are the three requirements for combustion to occur (the fire triangle)?', a:1, opts:['Fuel, oxygen, electricity','Fuel, oxygen, heat (ignition)','Fuel, nitrogen, heat','Carbon, oxygen, heat'], exp:'Combustion requires three elements: fuel (the burnable material), oxygen (from air), and heat (ignition source). Remove any one of these and combustion cannot occur — this is the basis of fire suppression.' },
+    { cat:'BOILER BASICS', q:'What does the term "MAWP" stand for?', a:2, opts:['Maximum Allowable Water Pressure','Minimum Allowable Working Pressure','Maximum Allowable Working Pressure','Measured Allowable Water Pressure'], exp:'MAWP stands for Maximum Allowable Working Pressure. It is the maximum pressure at which a boiler is designed to operate safely, as determined by the manufacturer and stamped on the nameplate.' },
+    { cat:'WATER LEVEL', q:'What happens if a boiler operates with too low a water level?', a:3, opts:['Efficiency increases','Steam pressure drops','Water carryover occurs','Overheating and possible explosion'], exp:'Low water is extremely dangerous. Without adequate water covering the heating surfaces, metal overheats rapidly, loses strength, and can rupture or cause an explosion. Low water is the leading cause of boiler accidents.' },
+    { cat:'BOILER BASICS', q:'What instrument is used to measure steam pressure in a boiler?', a:0, opts:['Pressure gauge','Thermometer','Flow meter','Hydrometer'], exp:'A pressure gauge (also called a steam gauge) measures the pressure of steam in the boiler. Every boiler is required to have a properly calibrated pressure gauge visible to the operator.' },
+    { cat:'SAFETY DEVICES', q:'What is the function of a low-water fuel cutoff?', a:1, opts:['Reduces fuel flow when steam pressure is high','Shuts off burner when water drops below safe level','Opens the safety valve automatically','Increases firing rate when needed'], exp:'The low-water fuel cutoff (LWCO) is a critical safety device that automatically shuts off the burner when water drops to a dangerous level. It prevents dry firing which can destroy a boiler.' },
+    { cat:'BOILER CODES', q:'Which ASME code section covers heating boilers?', a:2, opts:['Section I','Section V','Section IV','Section VIII'], exp:'ASME Section IV covers the construction of heating boilers (low-pressure steam and hot water). ASME Section I covers power boilers (high pressure). Section VIII covers pressure vessels.' },
+    { cat:'COMBUSTION', q:'What color should a natural gas flame be for efficient combustion?', a:0, opts:['Blue','Yellow','Orange','Red'], exp:'A properly adjusted natural gas flame burns blue, indicating complete combustion. A yellow or orange flame indicates incomplete combustion, wasted fuel, and possible carbon monoxide production.' },
+    { cat:'WATER TREATMENT', q:'What chemical is commonly used as an oxygen scavenger in boiler water treatment?', a:1, opts:['Phosphate','Sodium sulfite','Caustic soda','Chlorine'], exp:'Sodium sulfite (Na₂SO₃) reacts with dissolved oxygen in boiler water to prevent oxygen pitting corrosion. Oxygen is one of the most destructive contaminants in a boiler system.' },
+    { cat:'BOILER SAFETY', q:'What is a boiler blowdown used for?', a:3, opts:['To add fresh water to the boiler','To test the safety valve','To reduce steam pressure','To remove dissolved solids and sediment'], exp:'Blowdown removes accumulated dissolved solids (TDS), sludge, and sediment from the boiler. If TDS gets too high, it causes carryover, scale, and corrosion. Regular blowdown maintains water quality.' },
+    { cat:'BOILER BASICS', q:'What is meant by "from and at 212°F" when rating a boiler?', a:0, opts:['The boiler produces steam from feedwater at 212°F','The boiler only operates at 212°F','The minimum temperature of the steam','The exhaust temperature of the flue gas'], exp:'"From and at 212°F" is a standard rating basis meaning the boiler converts feedwater already at 212°F into steam at 212°F (0 psig). One boiler horsepower equals evaporating 34.5 lbs/hr from and at 212°F.' },
+    { cat:'SAFETY DEVICES', q:'What is the purpose of a pressure relief valve on a hot water boiler?', a:2, opts:['To add water when pressure is low','To measure water temperature','To relieve excess pressure and prevent explosion','To control the flow rate of hot water'], exp:'Like a safety valve on a steam boiler, a pressure relief valve (PRV) on a hot water boiler automatically opens to release water when pressure exceeds the set point, preventing dangerous overpressure.' },
+    { cat:'COMBUSTION', q:'What is the result of too much excess air in combustion?', a:1, opts:['More efficient combustion','Heat loss and reduced efficiency','Carbon monoxide production','Soot buildup'], exp:'Excess air carries heat out the stack as waste, reducing efficiency. However, too little air causes incomplete combustion and carbon monoxide. The goal is the right air/fuel ratio for complete, efficient combustion.' },
+    { cat:'WATER LEVEL', q:'How many water gauge glasses are required on a boiler over 400 sq ft of heating surface?', a:2, opts:['One','Three','Two','Four'], exp:'Boilers with more than 400 sq ft of heating surface are required to have two independent water gauge glasses so the operator can always verify water level even if one gauge malfunctions.' },
+    { cat:'BOILER BASICS', q:'What does EDR stand for in heating calculations?', a:0, opts:['Equivalent Direct Radiation','Effective Demand Rating','Energy Distribution Ratio','External Design Requirement'], exp:'EDR stands for Equivalent Direct Radiation. It is a unit used to express the heat output of radiators and the capacity of heating boilers. One square foot of EDR = 240 BTU/hr for steam systems.' },
+    { cat:'BOILER SAFETY', q:'What should you do FIRST if you notice the water level cannot be seen in the gauge glass?', a:3, opts:['Add water immediately','Call the supervisor','Increase firing rate','Shut down the boiler immediately'], exp:'If you cannot determine the water level, immediately shut down the boiler. Never add cold water to an overheated boiler — thermal shock can cause a steam explosion. Follow your emergency low-water procedures.' },
+    { cat:'WATER TREATMENT', q:'What is scale in a boiler and why is it dangerous?', a:1, opts:['A measurement tool for water level','Mineral deposits that insulate heating surfaces','A type of water treatment chemical','Rust from corroded pipes'], exp:'Scale is mineral deposits (primarily calcium and magnesium salts) that build up on heating surfaces. Scale acts as insulation, causing metal to overheat. Even 1/4" of scale can reduce efficiency by 25% and cause tube failures.' },
+    { cat:'COMBUSTION', q:'What instrument measures the efficiency of combustion by analyzing flue gases?', a:2, opts:['Manometer','Pyrometer','Flue gas analyzer (Orsat apparatus)','Draft gauge'], exp:'A flue gas analyzer (or Orsat apparatus) measures the percentage of CO₂, O₂, and CO in stack gases to calculate combustion efficiency and determine if the air/fuel ratio needs adjustment.' },
+    { cat:'BOILER BASICS', q:'What is a steam trap used for?', a:0, opts:['To remove condensate without losing steam','To trap steam pressure in the system','To filter impurities from steam','To measure steam quality'], exp:'A steam trap automatically removes condensate (water) and air from steam lines while preventing steam from escaping. Without traps, condensate accumulates, causing water hammer, reduced efficiency, and pipe damage.' },
+    { cat:'SAFETY DEVICES', q:'What is the purpose of a fusible plug in a boiler?', a:3, opts:['To prevent scale buildup','To seal boiler tubes','To measure water hardness','To melt and release steam if water level drops dangerously low'], exp:'A fusible plug contains a low-melting-point alloy. If the water level drops so low that the plug is exposed to steam/overheated metal, it melts and releases steam into the firebox, alerting the operator and shutting down combustion.' },
+    { cat:'BOILER CODES', q:'What organization sets the construction standards for boilers in the United States?', a:1, opts:['OSHA','ASME (American Society of Mechanical Engineers)','EPA','NFPA'], exp:'ASME (American Society of Mechanical Engineers) publishes the Boiler and Pressure Vessel Code (BPVC) which sets construction, inspection, and testing standards for boilers used throughout North America and internationally.' },
+    { cat:'WATER TREATMENT', q:'What causes water hammer in a steam system?', a:2, opts:['Too much water treatment chemicals','High steam pressure','Condensate meeting fast-moving steam in a pipe','Low boiler water pH'], exp:'Water hammer occurs when liquid condensate collects in steam pipes and is struck by high-velocity steam. The impact creates loud banging and can rupture pipes and fittings. Proper drainage and steam traps prevent it.' },
+  ],
+  '3rd': [
+    { cat:'HIGH PRESSURE', q:'What is the minimum pressure classification for a high-pressure steam boiler?', a:2, opts:['10 PSI','12 PSI','15 PSI','20 PSI'], exp:'Any steam boiler operating above 15 PSI gauge pressure is classified as a high-pressure boiler. These require more stringent construction standards (ASME Section I) and higher-class licensed operators.' },
+    { cat:'BOILER CONTROLS', q:'What is the function of a modulating burner control?', a:1, opts:['Turns the burner fully on or off','Varies the firing rate to match steam demand','Controls the water feed rate only','Measures flue gas temperature'], exp:'A modulating burner adjusts the firing rate continuously between high and low fire (and all points in between) to precisely match steam or heat demand. This is more efficient than simple on/off controls.' },
+    { cat:'STEAM SYSTEMS', q:'What is superheated steam?', a:0, opts:['Steam heated beyond its saturation temperature at a given pressure','Steam at 15 PSI or above','Steam mixed with water droplets','Steam in a vacuum system'], exp:'Superheated steam has been heated beyond its saturation temperature at its operating pressure. It contains more energy, has no moisture, and does not condense as readily — valuable for turbine operation and process work.' },
+    { cat:'SAFETY VALVES', q:'How many safety valves are required on a high-pressure boiler?', a:2, opts:['One is always sufficient','Depends on boiler age','At least one, more based on capacity','Only needed above 150 PSI'], exp:'ASME Section I requires at least one safety valve on every high-pressure boiler. Boilers with more than 500 sq ft of heating surface require two or more safety valves. All must be set at or below MAWP.' },
+    { cat:'COMBUSTION', q:'What is the stoichiometric air-fuel ratio for natural gas combustion?', a:1, opts:['5:1','10:1','15:1','20:1'], exp:'The theoretical (stoichiometric) air-fuel ratio for natural gas is approximately 10:1 by volume. In practice, 10-15% excess air is used to ensure complete combustion while minimizing stack losses.' },
+    { cat:'BOILER EFFICIENCY', q:'What is the stack temperature\'s relationship to boiler efficiency?', a:3, opts:['Higher stack temp = higher efficiency','Stack temp has no effect on efficiency','Lower stack temp always causes condensation','Higher stack temp = lower efficiency'], exp:'Every 40°F rise in stack temperature above the inlet air temperature represents approximately 1% loss in efficiency. Excess heat going up the stack is wasted energy. Economizers recover stack heat to improve efficiency.' },
+    { cat:'WATER TREATMENT', q:'What is the purpose of a deaerator in a boiler system?', a:0, opts:['Removes dissolved oxygen and gases from feedwater','Adds oxygen to improve water quality','Measures water hardness','Controls water pH levels'], exp:'A deaerator uses heat and mechanical scrubbing to remove dissolved oxygen and carbon dioxide from feedwater before it enters the boiler. This prevents oxygen pitting corrosion — one of the most destructive forms of boiler damage.' },
+    { cat:'BOILER CONTROLS', q:'What does a modulating feedwater regulator control?', a:2, opts:['Steam pressure output','Burner firing rate','Water level in the boiler drum','Flue gas temperature'], exp:'A modulating feedwater regulator continuously adjusts the feedwater control valve to maintain proper water level in the boiler drum by responding to changes in level, steam flow, and feedwater flow.' },
+    { cat:'STEAM SYSTEMS', q:'What is the purpose of a steam separator?', a:1, opts:['To superheat steam','To remove entrained moisture from steam','To measure steam quality','To reduce steam pressure'], exp:'A steam separator removes water droplets carried in steam (wet steam) by using centrifugal action or baffles. Dry steam is essential for efficient heat transfer, preventing water hammer, and protecting turbines.' },
+    { cat:'BOILER CODES', q:'What is the National Board of Boiler and Pressure Vessel Inspectors responsible for?', a:3, opts:['Manufacturing boiler components','Setting insurance rates','Training boiler operators','Promoting uniformity in inspection and repair of boilers'], exp:'The National Board promotes uniformity in the construction, installation, inspection, and repair of boilers and pressure vessels. They maintain records of registered pressure vessels and administer the "R" repair stamp program.' },
+    { cat:'COMBUSTION', q:'What causes soot to form in a boiler furnace?', a:0, opts:['Incomplete combustion due to insufficient air','Too much excess air','High steam pressure','Excessive feedwater temperature'], exp:'Soot is unburned carbon resulting from incomplete combustion — insufficient air, poor atomization of fuel oil, or incorrect air/fuel mixture. Soot is an insulator that reduces heat transfer and can be a fire hazard.' },
+    { cat:'BOILER CONTROLS', q:'What is a three-element feedwater control system?', a:2, opts:['Uses three separate boilers','Controls three different chemicals','Measures steam flow, feedwater flow, and drum level','Controls pressure, temperature, and flow simultaneously'], exp:'A three-element feedwater control system uses three measurements — steam flow (demand), feedwater flow (supply), and drum water level — to precisely control feedwater to match actual demand, preventing shrink/swell effects.' },
+    { cat:'HIGH PRESSURE', q:'What is "carryover" in a steam boiler?', a:1, opts:['Excess fuel carried into the combustion chamber','Water and impurities carried over into the steam lines','Steam carried back into the boiler drum','Heat carried up the stack'], exp:'Carryover occurs when water droplets and dissolved solids are carried from the boiler drum into the steam distribution system. It contaminates steam, causes water hammer, deposits scale in pipes, and damages turbines.' },
+    { cat:'SAFETY', q:'What is the purpose of a combustion safeguard (flame safety) system?', a:3, opts:['To maximize fuel efficiency','To control steam temperature','To monitor water quality','To prove flame presence and shut off fuel if flame is lost'], exp:'The flame safety (combustion safeguard) system uses a flame scanner to continuously verify that the burner flame is lit. If flame is lost during operation, it immediately shuts off fuel to prevent unburned gas accumulation and explosion.' },
+    { cat:'WATER TREATMENT', q:'What is caustic embrittlement (caustic cracking) in boilers?', a:0, opts:['Cracking of boiler metal caused by high concentration of caustic soda at stressed areas','Embrittlement caused by low water pH','Corrosion from oxygen in feedwater','Scaling from hard water deposits'], exp:'Caustic embrittlement is a form of stress corrosion cracking caused by high concentrations of sodium hydroxide (caustic soda) at crevices, joints, and stressed areas. It can cause catastrophic boiler failure.' },
+    { cat:'BOILER EFFICIENCY', q:'What is an economizer and what does it do?', a:2, opts:['A device that reduces chemical usage','A type of burner that uses less fuel','A heat exchanger that preheats feedwater using stack gases','A control system that minimizes fuel use'], exp:'An economizer is a heat exchanger located in the boiler flue gas path. It recovers heat from exhaust gases to preheat incoming feedwater, improving overall boiler efficiency by 2-5% for every 10°F rise in feedwater temperature.' },
+    { cat:'STEAM SYSTEMS', q:'What causes "priming" in a steam boiler?', a:1, opts:['Too little water in the boiler','Violent surging that carries water into steam lines due to high TDS or rapid load changes','Insufficient steam pressure','Air in the steam system'], exp:'Priming is a violent, sudden carryover of boiler water into steam lines, caused by excessive TDS, high water level, sudden large steam demands, or contaminated water. It is more severe than normal carryover.' },
+    { cat:'BOILER CONTROLS', q:'What is the function of a pressure reducing valve (PRV) in a steam system?', a:3, opts:['Prevents system pressure from dropping too low','Measures system pressure accurately','Automatically relieves excess pressure','Reduces high steam pressure to a lower, usable pressure'], exp:'A PRV (pressure reducing valve or pressure regulating valve) reduces high-pressure steam from the boiler to a lower pressure required by end-use equipment. It maintains constant downstream pressure regardless of upstream variations.' },
+    { cat:'COMBUSTION', q:'What is the purpose of a draft in a boiler?', a:0, opts:['To provide airflow for combustion and remove flue gases','To add moisture to combustion air','To cool the furnace walls','To measure heat output'], exp:'Draft is the difference in pressure that causes air to flow into the furnace for combustion and flue gases to flow out through the stack. Natural draft uses the buoyancy of hot gases; forced/induced draft uses fans.' },
+    { cat:'SAFETY', q:'What action should be taken if a boiler tube fails (bursts) while the boiler is operating?', a:2, opts:['Increase feedwater flow to compensate','Slowly reduce firing rate over 30 minutes','Immediately shut down the boiler and isolate it','Open all vents to release pressure slowly'], exp:'A tube failure is an emergency. Immediately shut down the boiler, close the main steam stop valve, and alert personnel. Never attempt to operate a boiler with a known tube failure — steam and hot gases are immediately dangerous.' },
+    { cat:'WATER TREATMENT', q:'What is the purpose of phosphate treatment in boiler water?', a:1, opts:['To increase water hardness','To precipitate hardness salts as non-adherent sludge','To reduce alkalinity','To add oxygen to the water'], exp:'Phosphate reacts with calcium and magnesium hardness to form calcium phosphate — a soft, non-adherent sludge that settles and can be removed by blowdown, rather than forming hard scale on heating surfaces.' },
+    { cat:'HIGH PRESSURE', q:'What is the purpose of a steam drum internals (baffles, cyclones, scrubbers)?', a:3, opts:['To increase drum pressure capacity','To heat incoming feedwater','To measure water level accurately','To separate water from steam and improve steam quality'], exp:'Steam drum internals use centrifugal separators, baffles, and scrubbers to mechanically separate water droplets from steam, producing dry, high-quality steam. This reduces carryover and protects downstream equipment.' },
+    { cat:'BOILER CODES', q:'What does the "S" stamp on a boiler signify?', a:0, opts:['ASME certification for power boiler construction','Safety valve certified','Section VIII pressure vessel','Steam boiler tested'], exp:'The "S" stamp (power boiler stamp) indicates the boiler was constructed in accordance with ASME Section I — Power Boilers. It can only be applied by manufacturers with ASME authorization and third-party inspection.' },
+    { cat:'BOILER EFFICIENCY', q:'What is meant by boiler "turndown ratio"?', a:2, opts:['The time it takes to shut down a boiler','The reduction in steam pressure during peak demand','The ratio of maximum to minimum firing rate while maintaining stable operation','The percentage of heat lost through radiation'], exp:'Turndown ratio is the ratio of maximum to minimum firing rate. A 10:1 turndown means the burner can fire at 10% of full capacity. Higher turndown improves efficiency at part loads by eliminating on/off cycling.' },
+    { cat:'SAFETY', q:'Before entering a boiler for inspection or repair, what is the first step?', a:1, opts:['Test the air quality inside','Isolate all energy sources, lock out/tag out, and ensure the boiler is cooled and depressurized','Check with the supervisor','Open all manholes to ventilate'], exp:'Lockout/Tagout (LOTO) is the first critical step. All steam, feedwater, fuel, and electrical connections must be isolated and locked before entry. The boiler must be cooled, depressurized, and ventilated. Confined space procedures apply.' },
+  ],
+  '2nd': [
+    { cat:'PLANT MANAGEMENT', q:'As a second-class engineer, you are responsible for supervising a third-class operator. The operator reports a gauge glass that appears to show normal water level but you suspect it may be false. What should you do?', a:2, opts:['Trust the operator\'s judgment','Increase feedwater flow immediately','Verify by trying to blow down the gauge glass and cross-check with other level indicators','Shut down immediately without further checks'], exp:'Always verify a suspicious gauge glass by blowing down (opening drain) — if the level drops and returns normally, it is accurate. Cross-check with the other gauge glass and high/low alarms. Never assume one reading is correct.' },
+    { cat:'THERMODYNAMICS', q:'What is the relationship between pressure and temperature in saturated steam?', a:0, opts:['As pressure increases, saturation temperature increases','As pressure increases, saturation temperature decreases','Pressure and temperature are independent','Temperature increases only above 100 PSI'], exp:'In saturated steam, pressure and temperature have a direct, fixed relationship — they rise and fall together. This is described in steam tables. Higher pressure steam always has a higher saturation temperature.' },
+    { cat:'PLANT OPERATIONS', q:'A boiler is experiencing high stack temperature with no change in load. What is the most likely cause?', a:3, opts:['High excess air','Low fuel pressure','Feedwater temperature drop','Fouled or scaled heat transfer surfaces'], exp:'Scale on heating surfaces is an excellent insulator. Even a thin layer forces flue gases to exit at higher temperatures because heat cannot transfer efficiently to the water. Scale analysis and chemical cleaning are indicated.' },
+    { cat:'BOILER CODES', q:'What is hydrostatic testing and when is it required?', a:1, opts:['Testing water chemical balance','Pressure testing boiler with water at 1.5× MAWP to check for leaks','Testing water flow rates','Measuring water pH under pressure'], exp:'A hydrostatic test fills the boiler with water and pressurizes it to 1.5 times MAWP. It reveals leaks, cracks, and weaknesses not visible externally. Required after major repairs, before return to service, and periodically per code.' },
+    { cat:'COMBUSTION', q:'What is the role of a flame scanner (UV or IR detector) in a burner management system?', a:2, opts:['Measures combustion temperature','Controls fuel flow rate','Continuously proves flame presence; shuts off fuel if flame fails','Adjusts air/fuel ratio automatically'], exp:'The flame scanner is the "eye" of the safety system. It continuously monitors the flame using ultraviolet or infrared sensors. If the flame goes out unexpectedly during operation, it signals immediate fuel shutoff within seconds.' },
+    { cat:'HEAT TRANSFER', q:'What are the three modes of heat transfer in a boiler?', a:0, opts:['Conduction, convection, and radiation','Evaporation, condensation, and conduction','Radiation, absorption, and reflection','Combustion, convection, and absorption'], exp:'Heat transfers from the flame to water via three mechanisms: radiation (direct heat from flame to furnace walls), convection (hot gases flowing over tube surfaces), and conduction (heat conducted through tube metal walls).' },
+    { cat:'PLANT OPERATIONS', q:'What is the significance of a rising steam pressure with no increase in firing rate?', a:3, opts:['System is operating efficiently','Feedwater is too hot','A tube is beginning to fail','Steam demand has decreased'], exp:'If pressure rises without increased firing, steam is not being consumed at the normal rate — demand has dropped. The operator should reduce firing rate. If not addressed, the safety valve will lift to relieve excess pressure.' },
+    { cat:'WATER TREATMENT', q:'What is "condensate return" and why is it valuable?', a:1, opts:['Water returned from the cooling system','Hot condensate returned from steam end-uses back to the boiler feedwater system','Chemical treatment returned to storage','Water removed during blowdown'], exp:'Condensate is steam that has given up its latent heat and condensed back to water. It is hot, pure, and energy-rich. Returning it saves energy (less heating needed), water, and chemical treatment costs.' },
+    { cat:'BOILER CODES', q:'What is the purpose of the ASME "R" stamp?', a:2, opts:['Certifies a new boiler for operation','Rates boiler capacity in horsepower','Certifies a repair organization to perform code repairs on boilers','Indicates a boiler has been registered with the National Board'], exp:'The "R" stamp (repair symbol) is issued by the National Board to organizations qualified to perform code repairs on boilers and pressure vessels. Repairs must be inspected and documented on the proper National Board forms.' },
+    { cat:'PLANT MANAGEMENT', q:'What is the purpose of a preventive maintenance (PM) program for boilers?', a:3, opts:['To reduce operator staffing requirements','To justify capital expenditure for new equipment','To comply with insurance requirements only','To identify and correct problems before they cause failures, extend equipment life, and ensure safety'], exp:'A comprehensive PM program inspects, tests, cleans, and services boiler components on scheduled intervals. It prevents unexpected failures, extends equipment life, maintains efficiency, and is required by most insurance carriers and codes.' },
+    { cat:'THERMODYNAMICS', q:'What is the purpose of a steam accumulator?', a:0, opts:['To store steam energy for sudden peak demands','To superheat steam before use','To measure steam quality','To remove moisture from steam'], exp:'A steam accumulator stores energy as hot pressurized water. During low-demand periods, excess boiler output charges it. During sudden peak demands, it flashes to steam and supplements boiler output, preventing pressure drops.' },
+    { cat:'COMBUSTION', q:'What is "fuel oil atomization" and why is it critical for good combustion?', a:2, opts:['The process of adding fuel to water','Measuring fuel oil viscosity','Breaking fuel oil into tiny droplets to maximize surface area for combustion','Preheating fuel oil before burning'], exp:'Atomization breaks fuel oil into tiny droplets, dramatically increasing the surface area exposed to combustion air. Proper atomization is essential for complete, efficient combustion. Poor atomization causes smoke, soot, and excess emissions.' },
+    { cat:'PLANT OPERATIONS', q:'You notice an unexplained increase in makeup water consumption. What does this likely indicate?', a:1, opts:['Boiler is operating more efficiently','A steam or condensate leak in the system','Feedwater pump is working harder','Boiler is producing more steam'], exp:'Increased makeup water means water is leaving the system faster than normal. This points to steam or condensate leaks. Leaks waste energy, water, and chemical treatment. Finding and fixing leaks is a priority for efficiency and cost.' },
+    { cat:'HEAT TRANSFER', q:'What is the purpose of baffles in a fire-tube boiler?', a:3, opts:['To support the tubes structurally','To regulate water flow between passes','To collect sludge for blowdown','To direct flue gases across tubes for maximum heat transfer'], exp:'Baffles in fire-tube boilers direct hot flue gases back and forth across the tube bundle, increasing the number of "passes" and maximizing heat transfer to the water before gases exit the stack. More passes = higher efficiency.' },
+    { cat:'BOILER CODES', q:'What is an Authorized Inspector (AI) and what role do they play?', a:0, opts:['A state or insurance company inspector certified by the National Board who inspects boilers for code compliance','A company employee who checks boiler logs','A boiler manufacturer representative','A government OSHA inspector'], exp:'An Authorized Inspector (AI) is certified by the National Board and employed by a state or insurance company. They inspect boilers during construction, installation, and operation to ensure compliance with ASME code and state regulations.' },
+    { cat:'WATER TREATMENT', q:'What is the purpose of conducting a "p-alkalinity" and "m-alkalinity" test on boiler water?', a:2, opts:['To measure total dissolved solids','To check for dissolved oxygen','To determine the type and amount of alkalinity present to guide chemical treatment','To measure water hardness'], exp:'P-alkalinity (phenolphthalein) measures hydroxide and half the carbonate alkalinity. M-alkalinity (methyl orange) measures total alkalinity. Together they help calculate the amounts of hydroxide, carbonate, and bicarbonate for proper treatment.' },
+    { cat:'PLANT MANAGEMENT', q:'What information should be included in a boiler operator\'s shift log?', a:1, opts:['Only safety incidents','All operating parameters, readings, maintenance performed, unusual conditions, chemical treatments, and blowdowns','Only if there is a problem','Just steam pressure and water level'], exp:'A complete shift log is both a legal and operational document. It should record steam pressure, water levels, fuel consumption, temperatures, blowdowns, chemical treatments, safety device tests, maintenance, unusual events, and operator name.' },
+    { cat:'THERMODYNAMICS', q:'What is the effect of altitude on boiler water boiling point?', a:3, opts:['Altitude has no effect on boiling point','Higher altitude raises the boiling point','Lower altitude lowers the boiling point','Higher altitude lowers the boiling point due to lower atmospheric pressure'], exp:'At higher altitudes, atmospheric pressure is lower. Since water boils when its vapor pressure equals atmospheric pressure, it boils at a lower temperature. At 5,000 ft elevation, water boils around 203°F instead of 212°F.' },
+    { cat:'COMBUSTION', q:'What is "excess air" and why is some always required?', a:0, opts:['Air supplied beyond stoichiometric requirement to ensure complete combustion','Air remaining after combustion is complete','Air that bypasses the combustion zone','Recirculated flue gas'], exp:'Excess air is additional air beyond the theoretical perfect amount needed for combustion. It is necessary because fuel and air never mix perfectly. Typically 10-20% excess air ensures complete combustion, preventing CO and smoke formation.' },
+    { cat:'PLANT OPERATIONS', q:'What is the proper procedure for taking a boiler off line (controlled shutdown)?', a:2, opts:['Close the steam valve and walk away','Reduce water to minimum level then shut off burner','Gradually reduce firing, allow pressure to drop, secure all valves, perform required log entries, and follow facility procedures','Immediately shut off all fuel and cool rapidly with water'], exp:'A controlled shutdown involves gradually reducing firing rate, managing load transfer, securing the main steam stop, performing safety checks, logging entries, and following facility lockout procedures. Rapid shutdowns cause thermal stress.' },
+    { cat:'BOILER CODES', q:'What is a "Certificate of Inspection" for a boiler?', a:1, opts:['The original ASME manufacturer\'s certificate','The legal document issued after inspection confirming the boiler is safe to operate at its rated pressure','A report of chemical treatment results','A record of safety valve tests'], exp:'A Certificate of Inspection (also called an operating permit) is issued by the state or insurance company after a satisfactory inspection. It is a legal requirement to operate the boiler and must be posted near the boiler.' },
+    { cat:'HEAT TRANSFER', q:'What is the purpose of refractory in a boiler furnace?', a:3, opts:['To conduct heat away from combustion zone','To absorb excess combustion air','To filter particulates from flue gas','To retain heat in the combustion zone, protect structural components, and improve combustion efficiency'], exp:'Refractory materials (firebrick, castable, ceramic fiber) line the furnace to insulate it, retain combustion heat, protect the boiler structure from flame impingement, and provide a hot surface that aids ignition and sustained combustion.' },
+    { cat:'WATER TREATMENT', q:'What is "blowdown rate" and how is it calculated?', a:0, opts:['The percentage of feedwater blown down to control TDS concentration','The rate at which safety valves open','The speed at which water drains from the boiler','The pressure drop during blowdown'], exp:'Blowdown rate = (Makeup water TDS) ÷ (Boiler water TDS - Makeup water TDS) × 100%. It calculates how much water must be removed to keep boiler TDS within acceptable limits. Minimizing blowdown saves water, energy, and chemicals.' },
+    { cat:'PLANT MANAGEMENT', q:'What is the purpose of an operating procedure manual for a boiler plant?', a:2, opts:['Required only for new operators','Needed only during emergencies','Documents standard startup, shutdown, normal operation, and emergency procedures to ensure safe, consistent operation','Only required by OSHA regulations'], exp:'Operating procedure manuals document the correct procedures for all aspects of boiler plant operation. They ensure consistency, provide training reference, guide operators during emergencies, and demonstrate due diligence for regulatory compliance.' },
+    { cat:'BOILER CODES', q:'When must a boiler be taken out of service for internal inspection?', a:1, opts:['Only when problems are reported','Per the schedule set by the Authorized Inspector, typically annually or biennially depending on jurisdiction and boiler type','Every five years only','Only when the certificate expires'], exp:'Inspection frequency is set by the Authorized Inspector based on boiler age, condition, type, and jurisdiction requirements. Most states require annual external inspection and biennial internal inspection at minimum.' },
+  ],
+  '1st': [
+    { cat:'PLANT ENGINEERING', q:'As chief engineer, you are reviewing efficiency data showing your plant heat rate has increased 8% over the past year. What systematic approach would you take to identify and correct the problem?', a:2, opts:['Immediately replace all burners','Order new boilers','Conduct a comprehensive energy audit: analyze stack losses, radiation losses, blowdown losses, condensate return rate, and compare all parameters to baseline','Hire additional operators and increase maintenance frequency'], exp:'A systematic energy audit compares current performance to baseline data. Check stack temperature and O₂ levels (combustion efficiency), surface temperatures (radiation loss), blowdown quantity (heat loss), condensate return %, and all auxiliary equipment.' },
+    { cat:'THERMODYNAMICS', q:'What is the Rankine cycle and why is it significant to a stationary engineer?', a:0, opts:['The theoretical thermodynamic cycle used in steam power plants consisting of pumping, heating, boiling, superheating, expanding, and condensing','A safety inspection cycle required annually','A chemical treatment cycle for boiler water','A maintenance scheduling system'], exp:'The Rankine cycle is the theoretical framework for steam power generation. Understanding it helps engineers optimize plant efficiency, understand the relationship between pressure/temperature/heat content, and make informed decisions about plant improvements.' },
+    { cat:'PLANT MANAGEMENT', q:'You are responsible for a plant with three boilers. One boiler has a cracked furnace wall. What are your legal and operational obligations?', a:3, opts:['Continue operating at reduced pressure until the next planned outage','Reduce firing rate and monitor closely','Document the crack and inform management','Take the boiler out of service immediately, notify the Authorized Inspector and your superior, and do not return it to service until inspected and repaired to code'], exp:'A cracked furnace wall is a serious defect. Legal obligation: take out of service, notify the AI (required by code), document everything. Operational obligation: ensure plant can meet load with remaining boilers. Safety obligation: protect personnel.' },
+    { cat:'ENERGY MANAGEMENT', q:'What is a "heat balance" calculation and what information does it provide?', a:1, opts:['A calculation of boiler water chemistry balance','An accounting of all heat inputs and losses in a boiler system to quantify efficiency and identify loss areas','A measurement of heat distribution in the furnace','A calculation of fuel heating value'], exp:'A heat balance accounts for all heat inputs (fuel) versus all outputs (useful steam heat + stack losses + radiation losses + blowdown losses + unburned fuel). It quantifies efficiency and identifies where the largest improvements can be made.' },
+    { cat:'BOILER CODES', q:'What is the significance of ASME Code Case interpretations and how do they affect plant operations?', a:2, opts:['They override state regulations in all cases','They apply only to new construction','They provide guidance on how to apply code requirements to specific situations not explicitly covered by the code, affecting repair and modification decisions','They are optional guidelines with no legal force'], exp:'Code Cases address specific technical situations not explicitly covered in the ASME code. They become legally applicable when adopted by the jurisdiction. First-class engineers must understand them for major repairs, modifications, and when dealing with aging or non-standard equipment.' },
+    { cat:'PLANT ENGINEERING', q:'What factors would you consider when evaluating a proposal to install a condensing economizer on an existing boiler?', a:0, opts:['Stack gas temperature, moisture content of flue gas, dew point, return on investment, potential for condensate corrosion, and impact on draft system','Only the purchase cost and installation time','Whether the boiler is new enough to warrant the investment','Only the efficiency improvement percentage'], exp:'A condensing economizer recovers both sensible and latent heat from flue gas, but requires careful analysis: flue gas must drop below dew point (requires cold enough feedwater), corrosion-resistant materials are needed, and draft system changes may be required.' },
+    { cat:'THERMODYNAMICS', q:'What is exergy analysis and how does it differ from energy analysis in evaluating boiler plant performance?', a:3, opts:['They are the same thing','Exergy measures only electrical output','Energy analysis measures heat only; exergy also measures electricity','Energy analysis counts all energy regardless of quality; exergy analysis accounts for the quality/usefulness of energy, identifying where thermodynamic losses actually occur'], exp:'Energy analysis can be misleading because it treats all energy equally. Exergy (available work) analysis accounts for energy quality — stack gases at 400°F represent greater lost potential than at 300°F. It precisely locates thermodynamic irreversibilities for optimization.' },
+    { cat:'PLANT MANAGEMENT', q:'How would you develop a comprehensive emergency response plan for a major boiler failure?', a:1, opts:['Copy the plan from the boiler manufacturer\'s manual','Develop written procedures covering: immediate safety actions, personnel notification chain, load shedding procedures, backup equipment operation, regulatory notification requirements, media/communications protocol, and post-incident investigation','Post a phone list of repair contractors','Train operators to call 911 in any emergency'], exp:'A comprehensive emergency plan must address: immediate personnel safety and evacuation if needed, utility notification, regulatory reporting (National Board, state authorities), maintaining critical loads, media management, documentation, and root cause analysis.' },
+    { cat:'ENERGY MANAGEMENT', q:'What is cogeneration (CHP - Combined Heat and Power) and what are its advantages?', a:2, opts:['Operating two boilers simultaneously for redundancy','Using condensate heat to preheat combustion air','Simultaneously generating electricity and useful heat from a single fuel source, dramatically improving overall energy efficiency','Combining natural gas and oil firing for better combustion'], exp:'CHP systems use a single fuel input to produce both electricity (via turbine/generator) and useful heat (from exhaust steam). Overall efficiencies of 70-80%+ are achievable versus 30-35% for power-only plants. First-class engineers often manage CHP systems.' },
+    { cat:'PLANT ENGINEERING', q:'A boiler\'s heating surface efficiency has degraded. Non-destructive testing (NDT) is ordered. What NDT methods are applicable to boiler tubes?', a:3, opts:['Visual inspection only','Chemical analysis of tube material','Pressure testing only','Ultrasonic testing (UT) for wall thickness, eddy current testing for tube defects, radiographic testing (RT) for welds, and magnetic particle or dye penetrant for surface cracks'], exp:'NDT allows inspection without destroying components. UT measures remaining wall thickness (pitting, erosion). Eddy current detects tube defects. RT (X-ray) examines welds. MT/PT finds surface cracks. Each method has specific applications in boiler inspection.' },
+    { cat:'REGULATORY', q:'What federal and state regulatory frameworks govern boiler plant operations, and what are a first-class engineer\'s compliance obligations?', a:0, opts:['OSHA (worker safety), state boiler laws (construction/inspection/licensing), EPA (emissions), and local fire codes all apply; first-class engineers are responsible for ensuring compliance across all frameworks','Only state boiler codes apply to licensed operators','Federal law supersedes all state regulations','Only OSHA regulations apply to boiler plants'], exp:'Boiler plants operate under multiple overlapping regulatory frameworks: OSHA 29 CFR for worker safety, state boiler codes for construction and operation, EPA for air emissions (NOx, CO, SOx), and local codes. First-class engineers bear legal responsibility for compliance.' },
+    { cat:'THERMODYNAMICS', q:'What is the principle of operation of a steam turbine and how does it convert steam energy to work?', a:2, opts:['Steam pressure directly pushes a piston to create mechanical work','Steam heats a secondary working fluid to drive a generator','High-velocity steam jets strike turbine blades (impulse) or steam expands across blades creating thrust (reaction), converting thermal/pressure energy to rotational mechanical energy','Steam is condensed to create a vacuum that pulls the turbine'], exp:'Turbines work on two principles: impulse (high-velocity jets from nozzles strike moving blades) and reaction (steam expands continuously across blades creating lift). Modern turbines combine both. Understanding turbine operation is essential for plant engineers managing CHP systems.' },
+    { cat:'PLANT MANAGEMENT', q:'How would you justify a capital investment in boiler plant upgrades to senior management?', a:1, opts:['Present only the efficiency numbers without financial analysis','Develop a comprehensive business case: current vs projected efficiency, fuel cost savings, maintenance cost reduction, reliability improvement, regulatory compliance value, carbon footprint reduction, and ROI with payback period','Focus only on safety improvements','Emphasize the age of the equipment without financial analysis'], exp:'Capital justification requires translating technical improvements into financial terms: calculate annual fuel savings (efficiency improvement × fuel cost), reduced maintenance (lower failure rate × repair cost), avoided downtime cost, and total against capital cost to show payback period and ROI.' },
+    { cat:'ENERGY MANAGEMENT', q:'What is demand-side management (DSM) and how can a chief engineer apply it to reduce operating costs?', a:3, opts:['Managing the number of operators on each shift','Reducing boiler pressure to decrease steam demand','Scheduling maintenance to meet demand','Shifting or reducing energy consumption to lower costs: thermal storage, load scheduling, peak demand reduction, and optimizing boiler sequencing to minimize fuel use and electricity demand charges'], exp:'DSM strategies reduce costs without reducing service. Examples: thermal storage (make steam at night when fuel is cheaper, store it), sequencing boilers optimally for part-load efficiency, timing high-load operations to avoid peak electricity demand charges.' },
+    { cat:'PLANT ENGINEERING', q:'What is the purpose of a reliability centered maintenance (RCM) analysis for a boiler plant?', a:0, opts:['To determine which maintenance tasks are worth doing based on failure modes and consequences, optimizing resources to prevent the failures that matter most','To eliminate all preventive maintenance in favor of run-to-failure','To schedule all maintenance at fixed intervals regardless of equipment condition','To justify reducing maintenance staff'], exp:'RCM identifies how equipment fails, the consequences of each failure mode, and the most cost-effective maintenance strategy for each: time-based PM, condition monitoring, redesign, or run-to-failure (for non-critical items). It optimizes maintenance resources.' },
+    { cat:'REGULATORY', q:'What is the operator\'s responsibility regarding boiler emissions under the Clean Air Act?', a:2, opts:['Emissions are the responsibility of the fuel supplier','Only large industrial plants have emissions obligations','Monitor and control NOx, CO, SO₂, and particulate emissions per applicable permits; maintain records; report exceedances; and operate combustion systems to minimize emissions','Emissions regulations only apply to plants over 100 MW'], exp:'Boiler operators must understand their facility\'s air permit, operate burners to minimize NOx and CO (proper combustion tuning), maintain required monitoring, keep records, and report any permit exceedances. Violations carry significant fines and legal liability.' },
+    { cat:'PLANT MANAGEMENT', q:'As chief engineer, how would you evaluate whether to repair or replace aging boiler equipment?', a:1, opts:['Always repair to save capital cost','Always replace equipment over 20 years old','Conduct a life cycle cost analysis comparing: remaining code-compliant life, repair cost vs replacement cost, efficiency of old vs new equipment, reliability/downtime cost, and available capital — then recommend the option with best long-term value','Replacement is always more cost-effective than repair'], exp:'The repair vs replace decision requires life cycle cost analysis: what will repairs cost vs. new equipment? How much more efficient is new equipment (fuel savings)? What is the remaining safe operating life? What is the cost of continued downtime risk? Only rigorous financial analysis drives sound decisions.' },
+    { cat:'THERMODYNAMICS', q:'What is the relationship between steam quality, dryness fraction, and energy content?', a:3, opts:['Steam quality refers only to purity of water used','Higher dryness fraction always means lower energy content','Steam quality and dryness fraction are unrelated terms','Steam quality (dryness fraction x) represents the proportion of vapor in a steam/water mixture; x=1.0 is dry saturated steam with maximum latent heat; x<1 means wet steam with less energy per pound of mixture'], exp:'Dryness fraction x (0 to 1) is critical for plant operations. Wet steam (x<1) carries less energy per pound, causes water hammer, and erodes turbine blades. Maintaining high steam quality through proper drum operation and steam separation is essential for efficiency and equipment life.' },
+    { cat:'ENERGY MANAGEMENT', q:'What strategies can a chief engineer implement to reduce a boiler plant\'s carbon footprint without major capital investment?', a:0, opts:['Combustion optimization (reduce excess air), maximize condensate return, minimize blowdown, optimize boiler sequencing, prevent steam leaks, and tune controls for efficient operation at all loads','Only capital projects reduce carbon footprint','Carbon reduction requires switching fuels immediately','Reduce operating hours by limiting steam availability'], exp:'Low or no-cost strategies can significantly reduce emissions: proper combustion tuning (each 1% O₂ reduction at typical levels saves ~0.5% fuel), maximizing hot condensate return (less heating needed), minimizing blowdown, fixing steam leaks, and running the most efficient boiler combinations for the load.' },
+    { cat:'PLANT ENGINEERING', q:'What are the key considerations when commissioning a new boiler installation?', a:2, opts:['Just start the boiler and check for leaks','Verify nameplate data matches specifications and start up','Chemical cleaning (to remove mill scale and oils), hydrostatic testing, safety valve testing and certification, controls calibration, burner management system testing and interlocks verification, operator training, and obtaining the certificate of inspection before placing in service','Inspect visually and obtain certificate of inspection only'], exp:'New boiler commissioning is a complex process: chemical cleaning prepares surfaces, hydrostatic testing verifies integrity, all safety devices must be tested per code, burner management system interlocks must be individually verified, operators must be trained, and a certificate of inspection is required before operation.' },
+    { cat:'PLANT MANAGEMENT', q:'How should a chief engineer respond to a near-miss incident in the boiler plant?', a:1, opts:['Document it and move on','Treat it with the same urgency as an actual accident: investigate root cause, implement corrective actions, share lessons learned with all personnel, update procedures if needed, and report per facility requirements','Only report it if someone was injured','Consider it unimportant since no one was hurt'], exp:'Near-misses are accidents that almost happened — they reveal real hazards and systemic failures. A thorough root cause analysis, immediate corrective action, procedure updates, and safety briefings turn near-misses into learning opportunities and prevent future accidents with actual consequences.' },
+    { cat:'REGULATORY', q:'What is the National Board Inspection Code (NBIC) and how does it affect in-service boiler management?', a:3, opts:['It applies only during new construction','It is optional for private facilities','It covers only pressure vessel inspections','It provides requirements for installation, inspection, and repair of in-service boilers; defines repair methods requiring "R" stamp; guides authorized inspectors; and is adopted by most states as the legal standard for in-service boiler management'], exp:'The NBIC (ANSI/NB-23) is the companion document to the ASME BPVC for in-service equipment. It defines acceptable repair methods, required inspection frequencies, documentation requirements, and the role of the Authorized Inspector. First-class engineers must understand it for managing repairs and inspections of their plant.' },
+    { cat:'PLANT ENGINEERING', q:'What is the purpose of a boiler interlock system and what are critical interlocks that must be verified?', a:0, opts:['Interlock systems automatically prevent unsafe conditions by linking safety functions: high/low pressure trips, high/low water level trips, loss of flame trips, low fuel pressure trips, combustion air fan failure trips, and high stack temperature trips must all be tested to ensure they function correctly','Interlocks are optional safety features','Only the safety valve and low-water cutoff are required interlocks','Interlocks are only required on boilers above 1000 HP'], exp:'Boiler interlocks form the automated safety system. Each interlock connects a monitored condition to a protective response (typically burner shutoff). All must be individually tested and documented. Bypassing interlocks without proper procedures is a serious safety violation.' },
+    { cat:'ENERGY MANAGEMENT', q:'What is a "boiler room energy audit" and what is the methodology for conducting one?', a:2, opts:['A financial review of energy costs only','A visual inspection of insulation on pipes','A systematic measurement and analysis of all energy inputs and outputs in the boiler plant: fuel consumption, steam output, stack losses, radiation losses, blowdown losses, condensate return, and auxiliary power consumption — compared to theoretical best performance to quantify improvement opportunities','A review of maintenance records and energy bills'], exp:'A proper energy audit requires baseline data collection (fuel input, steam meter readings, stack analysis, surface temperature surveys, condensate flow meters, blowdown measurements), calculation of all losses, comparison to best achievable performance, and prioritized improvement recommendations with ROI analysis.' },
+    { cat:'THERMODYNAMICS', q:'Explain the significance of the steam/water saturation curve and its practical application in boiler operations.', a:1, opts:['The saturation curve shows fuel combustion temperatures','The saturation curve defines the exact temperature and pressure relationship for steam and water in equilibrium; operators use it to verify gauge readings are consistent (if pressure and temperature don\'t match the curve, an instrument may be faulty or steam may be superheated/two-phase)','The saturation curve is only useful for engineers designing new equipment','The saturation curve shows boiler efficiency at different loads'], exp:'The saturation curve is a fundamental tool. In saturated steam systems, pressure and temperature have a fixed relationship. An operator who knows the steam pressure can look up the expected temperature (and vice versa). Discrepancies indicate instrument error, superheating, or contamination — all operationally significant.' },
+  ]
+};
+
+// ══════════════════════════════════════
+// FLASHCARDS
+// ══════════════════════════════════════
+const FLASHCARDS = [
+  { term:'MAWP', def:'Maximum Allowable Working Pressure — the highest pressure at which a boiler is permitted to operate safely, stamped on the nameplate.' },
+  { term:'Safety Valve', def:'A spring-loaded valve that automatically opens to relieve excess pressure. The most critical safety device on a boiler.' },
+  { term:'Low Water Fuel Cutoff (LWCO)', def:'Automatically shuts off the burner when water drops to a dangerous level, preventing dry firing and overheating.' },
+  { term:'Boiler Horsepower (BHP)', def:'Unit of boiler capacity. 1 BHP = evaporation of 34.5 lbs of water per hour from and at 212°F = 33,475 BTU/hr.' },
+  { term:'EDR', def:'Equivalent Direct Radiation. 1 sq ft EDR = 240 BTU/hr for steam, 150 BTU/hr for hot water systems.' },
+  { term:'Blowdown', def:'Removing water from the boiler to control dissolved solids (TDS), sludge, and sediment concentration.' },
+  { term:'Carryover', def:'Water droplets and dissolved solids carried from the boiler drum into steam lines. Causes water hammer and scale deposits.' },
+  { term:'Scale', def:'Mineral deposits (calcium, magnesium) on heating surfaces. Excellent insulator — causes overheating and tube failures.' },
+  { term:'Deaerator', def:'Removes dissolved oxygen and CO₂ from feedwater by heating and mechanical scrubbing to prevent corrosion.' },
+  { term:'Superheated Steam', def:'Steam heated beyond its saturation temperature at a given pressure. Higher energy content, no moisture.' },
+  { term:'Water Hammer', def:'Shock wave caused by condensate meeting high-velocity steam in a pipe. Causes banging and can rupture fittings.' },
+  { term:'Steam Trap', def:'Automatically removes condensate and air from steam lines while preventing steam from escaping.' },
+  { term:'Priming', def:'Violent, sudden carryover of boiler water into steam lines due to high TDS, high level, or sudden load changes.' },
+  { term:'ASME Section I', def:'ASME Boiler and Pressure Vessel Code section covering construction of Power Boilers (high pressure steam).' },
+  { term:'ASME Section IV', def:'ASME code section covering construction of Heating Boilers (low pressure steam and hot water).' },
+  { term:'National Board', def:'The National Board of Boiler and Pressure Vessel Inspectors. Promotes uniform inspection and administers the "R" repair stamp.' },
+  { term:'Hydrostatic Test', def:'Pressure test using water at 1.5× MAWP. Tests for leaks and structural integrity without the risk of steam release.' },
+  { term:'Fusible Plug', def:'Contains a low-melting alloy. Melts if water level drops and metal overheats, releasing steam as a warning.' },
+  { term:'Economizer', def:'Heat exchanger in the flue gas path that preheats feedwater using waste stack heat, improving efficiency 2-5%.' },
+  { term:'Authorized Inspector (AI)', def:'National Board certified inspector employed by state or insurance company. Inspects boilers for code compliance.' },
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let selectedClass = '4th';
+let selectedMode = 'exam';
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+let flashIndex = 0;
+let flashFlipped = false;
+let flashKnew = 0;
+
+// ══════════════════════════════════════
+// HOME
+// ══════════════════════════════════════
+function selectClass(cls) {
+  selectedClass = cls;
+  ['4th','3rd','2nd','1st'].forEach(c => document.getElementById('cls_'+c).classList.remove('selected'));
+  document.getElementById('cls_'+cls).classList.add('selected');
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  ['exam','study'].forEach(m => document.getElementById('mode_'+m).classList.remove('selected'));
+  document.getElementById('mode_'+mode).classList.add('selected');
+}
+
+function showStats() {
+  const stats = JSON.parse(localStorage.getItem('br_stats') || '{}');
+  const total = stats.total || 0;
+  const correct = stats.correct || 0;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  alert(`📊 YOUR STATS\n\nTotal Questions: ${total}\nCorrect: ${correct}\nOverall Score: ${pct}%\n\nKeep studying — you've got this!`);
+}
+
+function updateProgress() {
+  const stats = JSON.parse(localStorage.getItem('br_stats') || '{}');
+  const total = stats.total || 0;
+  const allQ = Object.values(QUESTIONS).flat().length;
+  const pct = Math.min(100, Math.round(total / allQ * 100));
+  if (total > 0) {
+    document.getElementById('progressStrip').style.display = 'flex';
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+  }
+}
+
+// ══════════════════════════════════════
+// EXAM
+// ══════════════════════════════════════
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startExam() {
+  currentQuestions = shuffle(QUESTIONS[selectedClass]);
+  currentIndex = 0;
+  score = 0;
+  answered = false;
+  showScreen('examScreen');
+  document.getElementById('examTitle').textContent = selectedClass.toUpperCase() + ' CLASS';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQuestions[currentIndex];
+  answered = false;
+
+  document.getElementById('qCounter').textContent = (currentIndex+1) + ' / ' + currentQuestions.length;
+  document.getElementById('examProgressFill').style.width = (currentIndex/currentQuestions.length*100) + '%';
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('answers').innerHTML = q.opts.map((opt,i) => `
+    <button class="answer-btn" onclick="selectAnswer(${i})" id="ans_${i}">
+      <span class="ans-letter">${letters[i]}</span>
+      <span>${opt}</span>
+    </button>
+  `).join('');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = currentQuestions[currentIndex];
+  const btns = document.querySelectorAll('.answer-btn');
+
+  btns.forEach(b => b.disabled = true);
+
+  if (idx === q.a) {
+    score++;
+    btns[idx].classList.add('correct');
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[idx].classList.add('shake');
+    if (selectedMode === 'study') {
+      btns[q.a].classList.add('reveal');
+    }
+  }
+
+  // Always show explanation in study mode; show in exam mode too
+  const exp = document.getElementById('explanation');
+  exp.innerHTML = `<strong>📖 EXPLANATION:</strong> ${q.exp}`;
+  exp.classList.add('show');
+
+  // Save stats
+  const stats = JSON.parse(localStorage.getItem('br_stats') || '{}');
+  stats.total = (stats.total || 0) + 1;
+  if (idx === q.a) stats.correct = (stats.correct || 0) + 1;
+  localStorage.setItem('br_stats', JSON.stringify(stats));
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= currentQuestions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+    // Re-animate
+    document.getElementById('examBody').style.animation = 'none';
+    setTimeout(() => document.getElementById('examBody').style.animation = 'slideIn 0.3s ease', 10);
+  }
+}
+
+function showResults() {
+  const pct = Math.round(score / currentQuestions.length * 100);
+  document.getElementById('resultPct').textContent = pct + '%';
+  document.getElementById('rCorrect').textContent = score;
+  document.getElementById('rWrong').textContent = currentQuestions.length - score;
+  document.getElementById('rTotal').textContent = currentQuestions.length;
+
+  let title, sub;
+  if (pct >= 70) { title = '✓ PASSED'; sub = 'You meet the minimum passing score. Keep sharp!'; }
+  else if (pct >= 55) { title = 'ALMOST THERE'; sub = 'Close — review your weak areas and try again.'; }
+  else { title = 'KEEP STUDYING'; sub = 'Use study mode and flashcards to build your knowledge.'; }
+
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSub').textContent = sub;
+  showScreen('resultsScreen');
+}
+
+// ══════════════════════════════════════
+// REFERENCE
+// ══════════════════════════════════════
+function showRef() { showScreen('refScreen'); }
+
+// ══════════════════════════════════════
+// FLASHCARDS
+// ══════════════════════════════════════
+function showFlash() {
+  flashIndex = 0;
+  flashFlipped = false;
+  flashKnew = 0;
+  showScreen('flashScreen');
+  renderFlash();
+}
+
+function renderFlash() {
+  const card = FLASHCARDS[flashIndex % FLASHCARDS.length];
+  document.getElementById('flashProgress').textContent = `Card ${(flashIndex % FLASHCARDS.length)+1} of ${FLASHCARDS.length} · Got it: ${flashKnew}`;
+  document.getElementById('flashSide').textContent = flashFlipped ? 'DEFINITION' : 'TERM';
+  document.getElementById('flashText').textContent = flashFlipped ? card.def : card.term;
+}
+
+function flipCard() {
+  flashFlipped = !flashFlipped;
+  renderFlash();
+}
+
+function flashNext(knew) {
+  if (knew) flashKnew++;
+  flashIndex++;
+  flashFlipped = false;
+  if (flashIndex >= FLASHCARDS.length) {
+    alert(`🃏 ROUND COMPLETE!\n\nGot it: ${flashKnew} / ${FLASHCARDS.length}\nMissed: ${FLASHCARDS.length - flashKnew}\n\nStarting again...`);
+    flashIndex = 0;
+    flashKnew = 0;
+  }
+  renderFlash();
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  showScreen('homeScreen');
+  updateProgress();
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  showScreen('homeScreen');
+  updateProgress();
+});
+</script>
+</body>
+</html>
