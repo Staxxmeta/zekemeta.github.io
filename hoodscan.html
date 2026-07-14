@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HOODSCAN — Robinhood Chain triage</title>
+<style>
+:root{
+  --bg:#0E1116;--panel:#151B23;--panelUp:#1B222C;--line:#242D38;
+  --text:#E8E3D6;--dim:#8A94A3;--faint:#5A6474;
+  --amber:#FFB000;--green:#3DD68C;--red:#E5484D;--yellow:#E8C547;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:13px/1.4 'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace;
+  padding-bottom:env(safe-area-inset-bottom)}
+button,input,select{font-family:inherit;font-size:12px}
+button{cursor:pointer}
+input:focus,select:focus{outline:1px solid var(--amber)}
+header{padding:18px 16px 14px;border-bottom:1px solid var(--line)}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h1{margin:0;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;
+  font-size:22px;letter-spacing:.02em;white-space:nowrap}
+h1 span{color:var(--amber)}
+#chainlbl{color:var(--faint);font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub{margin:6px 0 0;color:var(--dim);font-size:11px;line-height:1.5}
+.searchbar{padding:12px 16px 0;display:flex;gap:8px}
+.searchbar input{flex:1;min-width:0;background:var(--panel);color:var(--text);
+  border:1px solid var(--line);border-radius:4px;padding:9px 10px}
+.searchbar button{background:var(--panelUp);color:var(--amber);
+  border:1px solid var(--amber);border-radius:4px;padding:9px 14px;font-weight:600;flex-shrink:0}
+#notice{padding:8px 16px 0;color:var(--yellow);font-size:11px;line-height:1.5;display:none}
+.controls{padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  border-bottom:1px solid var(--line)}
+#rescan{background:var(--amber);color:#111;border:none;border-radius:4px;
+  padding:8px 14px;font-weight:600;letter-spacing:.04em}
+#rescan:disabled{background:var(--panel);color:var(--dim)}
+select{background:var(--panel);color:var(--text);border:1px solid var(--line);
+  border-radius:4px;padding:7px 8px}
+#tally{display:none;border-bottom:1px solid var(--line)}
+#tally .cell{flex:1;padding:10px 0;text-align:center;border-right:1px solid var(--line)}
+#tally .cell:last-child{border-right:none}
+#tally .n{font-size:20px;font-weight:600}
+#tally .l{font-size:9px;letter-spacing:.15em;color:var(--faint)}
+#state{padding:28px 16px;text-align:center;color:var(--dim);font-size:12px;line-height:1.6}
+#chains{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+#chains button{background:var(--panel);color:var(--text);border:1px solid var(--line);
+  border-radius:4px;padding:8px 12px;font-size:11px}
+#chains button b{color:var(--faint);font-weight:400}
+.row{padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:active{background:var(--panelUp)}
+.rowtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sym{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:15px}
+.meta{color:var(--faint);font-size:10px;margin-left:8px}
+.badge{font-weight:600;font-size:11px;letter-spacing:.1em}
+.score{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:17px;
+  min-width:34px;text-align:right}
+.gtrack{height:4px;background:var(--panel);border-radius:2px;overflow:hidden;margin-top:9px}
+.gfill{height:100%;transition:width .4s ease}
+.gmeta{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--dim)}
+.detail{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:none}
+.detail.open{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:11px;color:var(--dim)}
+.grid b{color:var(--text)}
+.good{font-size:11px;color:var(--green);margin-top:3px}
+.flag{font-size:11px;color:var(--red);margin-top:3px}
+.chart{display:inline-block;margin-top:12px;color:var(--amber);font-size:11px;
+  text-decoration:none;border-bottom:1px solid var(--amber)}
+footer{padding:16px;color:var(--faint);font-size:10px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>HOOD<span>SCAN</span></h1><span id="chainlbl">detecting chain…</span></div>
+  <p class="sub">Live DexScreener sweep · scored on exit-ability, flow, and survival. Triage, not advice.</p>
+</header>
+
+<div class="searchbar">
+  <input id="q" placeholder="ticker, name, or 0x token address" autocapitalize="none" autocorrect="off">
+  <button id="go">SCORE IT</button>
+</div>
+<div id="notice"></div>
+
+<div class="controls">
+  <button id="rescan">FULL RESCAN</button>
+  <select id="sort">
+    <option value="score">sort: score</option>
+    <option value="mcap">sort: mcap</option>
+    <option value="liq">sort: liquidity</option>
+    <option value="vol">sort: volume</option>
+    <option value="ch24">sort: 24h move</option>
+    <option value="age">sort: oldest</option>
+  </select>
+  <select id="minliq">
+    <option value="0">liq: any</option>
+    <option value="25000" selected>liq ≥ $25K</option>
+    <option value="100000">liq ≥ $100K</option>
+    <option value="250000">liq ≥ $250K</option>
+  </select>
+</div>
+
+<div id="tally" style="display:none">
+  <div class="cell"><div class="n" style="color:var(--green)" id="tP">0</div><div class="l">PLAYER</div></div>
+  <div class="cell"><div class="n" style="color:var(--yellow)" id="tW">0</div><div class="l">WATCH</div></div>
+  <div class="cell"><div class="n" style="color:var(--red)" id="tJ">0</div><div class="l">JUNK</div></div>
+</div>
+
+<div id="state"></div>
+<div id="list"></div>
+
+<footer>
+  <div id="lastscan"></div>
+  <div style="margin-top:4px">Score can't see contract code — it won't catch honeypots or hidden mint
+  functions. Verify contracts before buying. Everything here can go to zero.</div>
+</footer>
+
+<script>
+"use strict";
+const CASHCAT = "0x020bfc650a365f8bb26819deaabf3e21291018b4";
+const SEEDS = ["CASHCAT","HOODRAT","DIH","TENDIES","WISHBONE","Sherwood","robinhood",
+  "hood","WEN","JUGGERNAUT","Little John","4663","meow"];
+const API = "https://api.dexscreener.com/latest/dex";
+
+let chainId = null;
+let tokens = new Map();   // key -> row
+let chainCounts = {};
+let scanning = false;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const fmtUsd = n => n==null||isNaN(n) ? "—" :
+  n>=1e9 ? "$"+(n/1e9).toFixed(1)+"B" :
+  n>=1e6 ? "$"+(n/1e6).toFixed(1)+"M" :
+  n>=1e3 ? "$"+(n/1e3).toFixed(0)+"K" : "$"+n.toFixed(0);
+const fmtPct = n => n==null||isNaN(n) ? "—" :
+  (n>=0?"+":"") + (Math.abs(n)>=1000 ? (n/1000).toFixed(1)+"K%" : n.toFixed(1)+"%");
+const fmtAge = ms => { if(!ms) return "—";
+  const h=(Date.now()-ms)/3.6e6;
+  return h<1 ? Math.max(1,Math.round(h*60))+"m" : h<48 ? Math.round(h)+"h" : Math.round(h/24)+"d"; };
+const isAddr = s => /^0x[a-fA-F0-9]{40}$/.test((s||"").trim());
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function scoreToken(p){
+  const liq=p.liquidity?.usd??0, mcap=p.marketCap??p.fdv??0, vol24=p.volume?.h24??0;
+  const ch1=p.priceChange?.h1??0, ch24=p.priceChange?.h24??0;
+  const b24=p.txns?.h24?.buys??0, s24=p.txns?.h24?.sells??0;
+  const b1=p.txns?.h1?.buys??0, s1=p.txns?.h1?.sells??0;
+  const ageH=p.pairCreatedAt ? (Date.now()-p.pairCreatedAt)/3.6e6 : 0;
+  let score=50; const flags=[], goods=[];
+
+  if(liq<25000){score-=25;flags.push("liq <$25K — exit trap");}
+  else if(liq<75000){score-=12;flags.push("thin liq <$75K");}
+  else if(liq<250000){score+=4;}
+  else{score+=14;goods.push("deep liq "+fmtUsd(liq));}
+
+  const lm = mcap>0 ? liq/mcap : 0;
+  if(mcap>0){
+    if(lm<0.02){score-=18;flags.push("liq only "+(lm*100).toFixed(1)+"% of mcap");}
+    else if(lm<0.05){score-=8;flags.push("liq/mcap under 5%");}
+    else if(lm>0.08){score+=10;goods.push("liq backs "+(lm*100).toFixed(0)+"% of mcap");}
+  }
+
+  const vl = liq>0 ? vol24/liq : 0;
+  if(vl>60){score-=10;flags.push("vol "+vl.toFixed(0)+"x liq — wash-like churn");}
+  else if(vl>=2&&vl<=30){score+=10;goods.push("healthy turnover "+vl.toFixed(1)+"x liq");}
+  else if(vl<0.3&&vol24>0){score-=6;flags.push("volume drying up");}
+
+  const tot24=b24+s24;
+  if(tot24>50){
+    const br=b24/tot24;
+    if(br>=0.45&&br<=0.62){score+=8;goods.push("balanced flow "+Math.round(br*100)+"% buys");}
+    else if(br<0.35){score-=10;flags.push("sell-dominated flow");}
+    else if(br>0.75){score-=6;flags.push("buy-side froth (top signal)");}
+  } else if(tot24<20){score-=8;flags.push("dead flow <20 txns/24h");}
+
+  const tot1=b1+s1;
+  if(tot1>15){
+    const br1=b1/tot1;
+    if(br1<0.35){score-=6;flags.push("selling accelerating (1h)");}
+    else if(br1>0.55&&ch1>0){score+=4;}
+  }
+
+  if(ageH>0&&ageH<24){score-=14;flags.push("under 24h old");}
+  else if(ageH>=72){score+=8;goods.push("survived "+Math.round(ageH/24)+" days");}
+
+  if(ch24<=-85){score-=30;flags.push("−85%+ in 24h — likely rugged");}
+  else if(ch24<=-60){score-=15;flags.push("heavy 24h drawdown");}
+  if(ch24>500&&ch1<-10){score-=8;flags.push("parabola cracking");}
+  if(ch24>100&&ch1>0&&ch1<60){score+=6;goods.push("momentum holding");}
+  if(mcap>3e6&&vol24>1e6){score+=6;goods.push("real size + volume");}
+
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  let verdict,tone;
+  if(score>=68){verdict="PLAYER";tone="var(--green)";}
+  else if(score>=45){verdict="WATCH";tone="var(--yellow)";}
+  else{verdict="JUNK";tone="var(--red)";}
+  return {score,verdict,tone,flags,goods,lm};
+}
+
+function pairToRow(p){
+  const s=scoreToken(p);
+  return {
+    key:(p.baseToken?.address||p.pairAddress||"").toLowerCase(),
+    symbol:p.baseToken?.symbol||"?", name:p.baseToken?.name||"",
+    price:p.priceUsd?parseFloat(p.priceUsd):null,
+    liq:p.liquidity?.usd??0, mcap:p.marketCap??p.fdv??0, vol24:p.volume?.h24??0,
+    ch1:p.priceChange?.h1??0, ch24:p.priceChange?.h24??0,
+    buys24:p.txns?.h24?.buys??0, sells24:p.txns?.h24?.sells??0,
+    created:p.pairCreatedAt, url:p.url, dex:p.dexId, chainId:p.chainId, ...s
+  };
+}
+
+function notice(msg){
+  const el=$("notice");
+  if(!msg){el.style.display="none";return;}
+  el.textContent=msg; el.style.display="block";
+}
+
+function setState(html){ $("state").innerHTML=html; }
+
+function render(){
+  const minLiq=Number($("minliq").value);
+  const sortKey=$("sort").value;
+  const sorters={
+    score:(a,b)=>b.score-a.score, mcap:(a,b)=>b.mcap-a.mcap, liq:(a,b)=>b.liq-a.liq,
+    vol:(a,b)=>b.vol24-a.vol24, ch24:(a,b)=>b.ch24-a.ch24,
+    age:(a,b)=>(a.created||0)-(b.created||0),
+  };
+  const rows=[...tokens.values()].filter(t=>t.liq>=minLiq).sort(sorters[sortKey]||sorters.score);
+
+  const tally={PLAYER:0,WATCH:0,JUNK:0};
+  rows.forEach(r=>tally[r.verdict]++);
+  $("tP").textContent=tally.PLAYER; $("tW").textContent=tally.WATCH; $("tJ").textContent=tally.JUNK;
+  $("tally").style.display=rows.length?"flex":"none";
+
+  if(!rows.length && tokens.size){
+    setState('Nothing above the liquidity filter. Drop it to "liq: any" or search a ticker above.');
+  } else if(rows.length){ setState(""); }
+
+  $("list").innerHTML = rows.map(t=>{
+    const g=Math.min(1,t.lm/0.15);
+    const gcol=g>0.5?"var(--green)":g>0.25?"var(--yellow)":"var(--red)";
+    return `<div class="row" data-k="${esc(t.key)}">
+      <div class="rowtop">
+        <div style="min-width:0;overflow:hidden">
+          <span class="sym">${esc(t.symbol)}</span>
+          <span class="meta">${fmtAge(t.created)} · ${esc(t.dex||"")}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <span class="badge" style="color:${t.tone}">${t.verdict}</span>
+          <span class="score" style="color:${t.tone}">${t.score}</span>
+        </div>
+      </div>
+      <div class="gtrack"><div class="gfill" style="width:${(g*100).toFixed(0)}%;background:${gcol}"></div></div>
+      <div class="gmeta">
+        <span>exit: liq ${fmtUsd(t.liq)} = ${t.mcap>0?(t.lm*100).toFixed(1):"?"}% of ${fmtUsd(t.mcap)} mcap</span>
+        <span style="color:${t.ch24>=0?"var(--green)":"var(--red)"}">${fmtPct(t.ch24)} 24h</span>
+      </div>
+      <div class="detail" id="d-${esc(t.key)}">
+        <div class="grid">
+          <span>vol 24h <b>${fmtUsd(t.vol24)}</b></span>
+          <span>1h move <b style="color:${t.ch1>=0?"var(--green)":"var(--red)"}">${fmtPct(t.ch1)}</b></span>
+          <span>buys/sells 24h <b>${t.buys24}/${t.sells24}</b></span>
+          <span>price <b>${t.price!=null?"$"+t.price.toPrecision(4):"—"}</b></span>
+        </div>
+        <div style="margin-top:10px">
+          ${t.goods.map(x=>`<div class="good">+ ${esc(x)}</div>`).join("")}
+          ${t.flags.map(x=>`<div class="flag">! ${esc(x)}</div>`).join("")}
+        </div>
+        ${t.url?`<a class="chart" href="${esc(t.url)}" target="_blank" rel="noreferrer">open chart on DexScreener →</a>`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  document.querySelectorAll(".row").forEach(el=>{
+    el.addEventListener("click",e=>{
+      if(e.target.closest("a"))return;
+      const d=$("d-"+el.dataset.k);
+      if(d)d.classList.toggle("open");
+    });
+  });
+}
+
+async function fetchJson(url){
+  const r=await fetch(url);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  return r.json();
+}
+
+async function scan(forced){
+  if(scanning)return;
+  scanning=true;
+  $("rescan").disabled=true; $("rescan").textContent="SCANNING…";
+  notice(null);
+  const pairMap=new Map(); chainCounts={}; let anchor=null, failures=0;
+
+  for(let i=0;i<SEEDS.length;i++){
+    setState(`sweep ${i+1}/${SEEDS.length} · "${esc(SEEDS[i])}"<br>
+      <span style="font-size:10px;color:var(--faint)">sweeping seed tickers across DexScreener…</span>`);
+    try{
+      const j=await fetchJson(API+"/search?q="+encodeURIComponent(SEEDS[i]));
+      for(const p of j.pairs||[]){
+        chainCounts[p.chainId]=(chainCounts[p.chainId]||0)+1;
+        if((p.baseToken?.address||"").toLowerCase()===CASHCAT) anchor=p.chainId;
+        const key=p.chainId+":"+(p.baseToken?.address||p.pairAddress);
+        const ex=pairMap.get(key);
+        if(!ex||(p.liquidity?.usd??0)>(ex.liquidity?.usd??0))pairMap.set(key,p);
+      }
+    }catch(e){failures++;}
+    await sleep(220);
+  }
+
+  if(failures===SEEDS.length){
+    setState(`Every request failed. If you opened this inside an app's preview, open it in
+      <b>Safari or Chrome directly</b> — in-app sandboxes block DexScreener.
+      Otherwise check your connection and hit FULL RESCAN.`);
+    scanning=false; $("rescan").disabled=false; $("rescan").textContent="FULL RESCAN";
+    return;
+  }
+
+  const regexHit=Object.keys(chainCounts).find(id=>/hood|robin|4663/i.test(id));
+  const target=forced||anchor||regexHit||null;
+
+  if(!target){
+    const chains=Object.entries(chainCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    setState(`Couldn't pin Robinhood Chain automatically. Tap the chain these tokens live on:
+      <div id="chains">${chains.map(([id,n])=>
+        `<button data-c="${esc(id)}">${esc(id)} <b>(${n})</b></button>`).join("")}</div>`);
+    document.querySelectorAll("#chains button").forEach(b=>
+      b.addEventListener("click",()=>scanWith(b.dataset.c,pairMap)));
+    scanning=false; $("rescan").disabled=false; $("rescan").textContent="FULL RESCAN";
+    return;
+  }
+  finishScan(target,pairMap);
+}
+
+function scanWith(target,pairMap){ finishScan(target,pairMap); }
+
+function finishScan(target,pairMap){
+  chainId=target;
+  $("chainlbl").textContent="chain: "+target;
+  tokens=new Map();
+  for(const p of pairMap.values()){
+    if(p.chainId!==target)continue;
+    const r=pairToRow(p);
+    tokens.set(r.key,r);
+  }
+  $("lastscan").textContent="last sweep "+new Date().toLocaleTimeString();
+  scanning=false; $("rescan").disabled=false; $("rescan").textContent="FULL RESCAN";
+  if(!tokens.size){
+    setState(`Sweep locked chain (${esc(target)}) but found no pairs above dust. Search a ticker above.`);
+  }
+  render();
+}
+
+async function search(){
+  const q=$("q").value.trim();
+  if(!q)return;
+  $("go").textContent="…"; notice(null);
+  try{
+    let pairs=[];
+    if(isAddr(q)){
+      const j=await fetchJson(API+"/tokens/"+q); pairs=j.pairs||[];
+    }else{
+      const j=await fetchJson(API+"/search?q="+encodeURIComponent(q)); pairs=j.pairs||[];
+    }
+    let onChain=chainId?pairs.filter(p=>p.chainId===chainId):pairs;
+    if(!chainId&&isAddr(q)&&pairs.length){
+      chainId=pairs[0].chainId;
+      $("chainlbl").textContent="chain: "+chainId;
+      onChain=pairs.filter(p=>p.chainId===chainId);
+    }
+    if(!onChain.length){
+      notice(pairs.length
+        ? `No "${q}" pairs on ${chainId||"target chain"} — found it on: `+
+          [...new Set(pairs.map(p=>p.chainId))].slice(0,4).join(", ")+
+          ". Watch for copycat tickers on other chains."
+        : `Nothing on DexScreener for "${q}". Too new, or not yet indexed.`);
+    }else{
+      const best=new Map();
+      for(const p of onChain){
+        const k=(p.baseToken?.address||"").toLowerCase();
+        const ex=best.get(k);
+        if(!ex||(p.liquidity?.usd??0)>(ex.liquidity?.usd??0))best.set(k,p);
+      }
+      let first=null;
+      for(const p of best.values()){
+        const r=pairToRow(p); tokens.set(r.key,r);
+        if(!first)first=r.key;
+      }
+      render();
+      notice("Added "+best.size+" token(s) from search — scored below.");
+      const d=$("d-"+first); if(d)d.classList.add("open");
+    }
+  }catch(e){
+    notice("Search failed ("+e.message+"). If this keeps happening, open this file in Safari/Chrome directly — app previews block the API.");
+  }
+  $("go").textContent="SCORE IT";
+}
+
+$("go").addEventListener("click",search);
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")search();});
+$("rescan").addEventListener("click",()=>scan(chainId));
+$("sort").addEventListener("change",render);
+$("minliq").addEventListener("change",render);
+scan();
+</script>
+</body>
+</html>
