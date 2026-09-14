@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch Check</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Launch Check">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #E4E2DA;
+    --surface: #FBFAF7;
+    --ink: #1C1E22;
+    --ink-soft: #5B5F66;
+    --rule: #C8C5BA;
+    --alarm: #A81F16;
+    --alarm-wash: #F6E4E1;
+    --caution: #8A6A12;
+    --caution-wash: #F7EEDA;
+    --clear: #3E6552;
+    --clear-wash: #E3EDE6;
+    --blank: #6B6F76;
+    --blank-wash: #ECEAE4;
+    --sans: 'Archivo', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 600px; margin: 0 auto; padding: 28px 18px 64px; }
+
+  .masthead { margin-bottom: 26px; }
+  .masthead h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; margin: 0 0 6px; }
+  .masthead p { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 44ch; }
+  .build { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; }
+
+  .feed { margin-bottom: 22px; overflow: hidden; }
+  .feed-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--rule); }
+  .feed-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .refresh { border: none; background: none; padding: 0; color: var(--ink-soft); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: underline; }
+  .feed-body { max-height: 340px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .feed-msg { padding: 16px; font-size: 14px; color: var(--ink-soft); }
+
+  .launch {
+    display: block; width: 100%; text-align: left;
+    border: none; border-bottom: 1px solid var(--rule); background: none;
+    padding: 12px 16px; cursor: pointer; font-family: var(--sans); color: var(--ink);
+  }
+  .launch:last-child { border-bottom: none; }
+  .launch:hover, .launch:focus-visible { background: var(--ground); }
+  .launch .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .launch .sym { font-weight: 600; font-size: 15px; }
+  .launch .age { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); flex-shrink: 0; }
+  .launch .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .console { padding: 18px; }
+  .field { margin-bottom: 14px; }
+  .field:last-of-type { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .field input, .field select {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--rule);
+    border-radius: 2px; background: #fff; color: var(--ink);
+    font-family: var(--mono); font-size: 14px;
+  }
+  .field select { font-family: var(--sans); }
+  .field input:focus-visible, .field select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--ink); outline-offset: 2px;
+  }
+  .run {
+    width: 100%; padding: 13px; border: none; border-radius: 2px;
+    background: var(--ink); color: var(--surface);
+    font-family: var(--sans); font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .run:disabled { opacity: 0.5; cursor: default; }
+  .status { margin-top: 16px; font-size: 14px; color: var(--ink-soft); font-family: var(--mono); }
+
+  .report { margin-top: 26px; }
+  .report[hidden] { display: none; }
+
+  .verdict { border: 1px solid var(--rule); border-left-width: 6px; border-radius: 3px; padding: 18px; margin-bottom: 20px; }
+  .verdict h2 { margin: 0 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  .verdict p { margin: 0; font-size: 15px; line-height: 1.5; }
+  .verdict.high { border-left-color: var(--alarm); background: var(--alarm-wash); }
+  .verdict.medium { border-left-color: var(--caution); background: var(--caution-wash); }
+  .verdict.low { border-left-color: var(--clear); background: var(--clear-wash); }
+  .verdict.info { border-left-color: var(--blank); background: var(--blank-wash); }
+
+  .facts { margin: 0 0 20px; }
+  .facts div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .facts div:last-child { border-bottom: none; }
+  .facts dt { color: var(--ink-soft); flex-shrink: 0; }
+  .facts dd { margin: 0; font-family: var(--mono); text-align: right; word-break: break-all; }
+
+  .section-head { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+
+  .timeline { margin-bottom: 20px; }
+  .timeline ol { list-style: none; margin: 0; padding: 0 0 0 20px; border-left: 2px solid var(--rule); }
+  .timeline li { position: relative; padding: 0 0 16px 4px; font-size: 14px; }
+  .timeline li:last-child { padding-bottom: 0; }
+  .timeline li::before { content: ""; position: absolute; left: -27px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+  .timeline time { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-soft); margin-bottom: 2px; }
+
+  .flags { margin-bottom: 20px; }
+  .flags ul { list-style: none; margin: 0; padding: 0; }
+  .flags li { display: flex; gap: 11px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 2px; margin-bottom: 7px; background: var(--surface); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+  .dot.high { background: var(--alarm); }
+  .dot.medium { background: var(--caution); }
+  .dot.low { background: var(--clear); }
+  .dot.info { background: var(--blank); }
+  .flags strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .flags span.body { font-size: 14px; color: var(--ink-soft); line-height: 1.45; }
+
+  .watch { padding: 14px; }
+  .watch p { margin: 0 0 10px; font-size: 14px; color: var(--ink-soft); }
+  .watch .addr { font-family: var(--mono); font-size: 13px; word-break: break-all; padding: 8px 10px; background: var(--ground); border-radius: 2px; margin-bottom: 6px; }
+  .watch .addr small { display: block; font-family: var(--sans); font-size: 12px; color: var(--ink-soft); margin-bottom: 3px; }
+
+  .error { border: 1px solid var(--alarm); background: var(--alarm-wash); border-radius: 3px; padding: 14px; font-size: 14px; margin-top: 20px; }
+  .error[hidden] { display: none; }
+
+  .note { margin-top: 26px; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .report { animation: rise 260ms ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1>Launch Check</h1>
+    <p>See what just launched. Find out who made it and who paid for it, before you buy.</p>
+    <p class="build">build 6</p>
+  </header>
+
+  <section class="panel feed">
+    <div class="feed-head">
+      <h2>Just launched</h2>
+      <button class="refresh" id="refresh">Refresh</button>
+    </div>
+    <div class="feed-body" id="feedBody"><p class="feed-msg">Loading new pools…</p></div>
+  </section>
+
+  <div class="panel console">
+    <div class="field">
+      <label for="addr">Token contract address</label>
+      <input id="addr" type="text" placeholder="0x…" spellcheck="false" autocapitalize="off" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="chain">Network</label>
+      <select id="chain">
+        <option value="rh">Robinhood Chain</option>
+        <option value="eth">Ethereum</option>
+        <option value="base">Base</option>
+        <option value="arb">Arbitrum</option>
+        <option value="op">Optimism</option>
+      </select>
+    </div>
+    <button class="run" id="run">Run the check</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="error" id="error" hidden></div>
+
+  <div class="report" id="report" hidden>
+    <div class="verdict" id="verdict">
+      <h2 id="verdictHead"></h2>
+      <p id="verdictText"></p>
+    </div>
+    <dl class="panel facts" id="facts"></dl>
+    <div class="timeline" id="timelineBox">
+      <h3 class="section-head">What happened, in order</h3>
+      <ol id="timeline"></ol>
+    </div>
+    <div class="flags">
+      <h3 class="section-head">What stands out</h3>
+      <ul id="flags"></ul>
+    </div>
+    <div class="panel watch" id="watchBox">
+      <p>Worth watching. When the wallet that paid for this launch funds a new one, another token is coming.</p>
+      <div id="watch"></div>
+    </div>
+  </div>
+
+  <p class="note">New pools come from GeckoTerminal. Ownership and money trails come from Blockscout. Both are public records. This tells you how a launch was put together — never where the price goes next.</p>
+
+</div>
+
+<script>
+"use strict";
+
+const CHAINS = {
+  rh:   { bs: "https://robinhoodchain.blockscout.com", gt: "robinhood" },
+  eth:  { bs: "https://eth.blockscout.com",            gt: "eth" },
+  base: { bs: "https://base.blockscout.com",           gt: "base" },
+  arb:  { bs: "https://arbitrum.blockscout.com",       gt: "arbitrum" },
+  op:   { bs: "https://optimism.blockscout.com",       gt: "optimism" }
+};
+
+const GT = "https://api.geckoterminal.com/api/v2";
+const $ = (id) => document.getElementById(id);
+const MIN = 60 * 1000;
+const SMALL = 1500;
+const LARGE = 15000;
+const BUSY_FACTORY = 50;   // transactions that mark a factory as shared infrastructure
+
+let ethUsd = null;
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+}
+function same(a, b) { return !!a && !!b && a.toLowerCase() === b.toLowerCase(); }
+function short(a) { return !a ? "—" : a.slice(0, 6) + "…" + a.slice(-4); }
+function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+function eth(wei) {
+  if (!wei) return 0;
+  try { return Number(BigInt(wei) / 10n ** 12n) / 1e6; } catch (e) { return 0; }
+}
+function dollars(n) { return ethUsd ? n * ethUsd : null; }
+function money(n) {
+  const d = dollars(n);
+  const e = n >= 1 ? n.toFixed(2) + " ETH" : n.toFixed(4) + " ETH";
+  if (d === null) return e;
+  const s = d >= 1000 ? "$" + Math.round(d).toLocaleString() : "$" + d.toFixed(0);
+  return s + " (" + e + ")";
+}
+function usd(v) {
+  const n = Number(v);
+  if (!isFinite(n) || n <= 0) return "—";
+  if (n >= 1e9) return "$" + (n / 1e9).toFixed(1) + "B";
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return "$" + Math.round(n / 1e3) + "K";
+  return "$" + n.toFixed(0);
+}
+function ago(iso) {
+  const m = (Date.now() - new Date(iso)) / MIN;
+  if (m < 1) return "just now";
+  if (m < 60) return Math.round(m) + "m";
+  if (m < 1440) return Math.round(m / 60) + "h";
+  return Math.round(m / 1440) + "d";
+}
+function since(iso) {
+  const m = (Date.now() - new Date(iso)) / MIN;
+  if (m < 60) return plural(Math.round(m), "minute", "minutes");
+  if (m < 1440) return (m / 60).toFixed(1) + " hours";
+  return plural(Math.round(m / 1440), "day", "days");
+}
+function clock(iso) {
+  return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function gap(a, b) {
+  const m = Math.abs(new Date(a) - new Date(b)) / MIN;
+  if (m < 90) return plural(Math.round(m), "minute", "minutes");
+  if (m < 2880) return (m / 60).toFixed(1) + " hours";
+  return plural(Math.round(m / 1440), "day", "days");
+}
+
+async function loadEthPrice() {
+  if (ethUsd) return;
+  try {
+    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd");
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j && j.ethereum && j.ethereum.usd) ethUsd = j.ethereum.usd;
+  } catch (e) { /* amounts fall back to ETH only */ }
+}
+
+/* ---------- new launches feed ---------- */
+
+async function loadFeed() {
+  const net = CHAINS[$("chain").value].gt;
+  const body = $("feedBody");
+  body.innerHTML = '<p class="feed-msg">Loading new pools…</p>';
+  try {
+    const res = await fetch(GT + "/networks/" + net + "/new_pools?page=1", {
+      headers: { accept: "application/json;version=20230302" }
+    });
+    if (res.status === 429) throw new Error("GeckoTerminal is busy. Give it a minute and hit refresh.");
+    if (!res.ok) throw new Error("GeckoTerminal returned status " + res.status + ".");
+    const json = await res.json();
+    const pools = (json && json.data) || [];
+    if (!pools.length) {
+      body.innerHTML = '<p class="feed-msg">Nothing new listed on this network right now.</p>';
+      return;
+    }
+    body.innerHTML = pools.slice(0, 15).map((p) => {
+      const a = p.attributes || {};
+      const rel = (p.relationships && p.relationships.base_token && p.relationships.base_token.data) || {};
+      const id = rel.id || "";
+      const token = id.includes("_") ? id.slice(id.indexOf("_") + 1) : "";
+      const name = (a.name || "Unnamed pool").split(" / ")[0];
+      const vol = a.volume_usd ? a.volume_usd.h24 : null;
+      const bits = [
+        a.reserve_in_usd ? "pool " + usd(a.reserve_in_usd) : null,
+        vol ? "traded " + usd(vol) : null
+      ].filter(Boolean).join("  ·  ");
+      return '<button class="launch" data-token="' + esc(token) + '">' +
+             '<span class="top"><span class="sym">' + esc(name) + "</span>" +
+             '<span class="age">' + (a.pool_created_at ? ago(a.pool_created_at) : "") + "</span></span>" +
+             '<span class="meta">' + esc(bits || "no trading data yet") + "</span></button>";
+    }).join("");
+    body.querySelectorAll(".launch").forEach((el) => {
+      el.addEventListener("click", () => {
+        const t = el.getAttribute("data-token");
+        if (!t) { fail("That pool doesn't list a token address yet."); return; }
+        $("addr").value = t;
+        $("addr").scrollIntoView({ behavior: "smooth", block: "center" });
+        check();
+      });
+    });
+  } catch (err) {
+    const m = (err && err.message) || "";
+    body.innerHTML = '<p class="feed-msg">' + esc(
+      /fetch|network|load failed/i.test(m)
+        ? "Couldn't reach GeckoTerminal. You can still paste an address below."
+        : m) + "</p>";
+  }
+}
+
+/* ---------- chain reads ---------- */
+
+async function api(host, path) {
+  const res = await fetch(host + path, { headers: { accept: "application/json" } });
+  if (res.status === 404) return null;
+  if (res.status === 429) throw new Error("Blockscout is busy. Wait a minute and run it again.");
+  if (!res.ok) throw new Error("Blockscout returned status " + res.status + ".");
+  return res.json();
+}
+
+function setStatus(t) { $("status").textContent = t; }
+function fail(msg) { const e = $("error"); e.textContent = msg; e.hidden = false; }
+
+async function check() {
+  const addr = $("addr").value.trim();
+  const host = CHAINS[$("chain").value].bs;
+
+  $("error").hidden = true;
+  $("report").hidden = true;
+
+  if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+    fail("That doesn't look like a contract address. It should start with 0x followed by 40 characters.");
+    return;
+  }
+
+  $("run").disabled = true;
+  loadEthPrice();
+
+  try {
+    setStatus("Reading the contract…");
+    const info = await api(host, "/api/v2/addresses/" + addr);
+    if (!info) throw new Error("Nothing found at that address on this network. Check you picked the right chain.");
+    if (!info.is_contract) throw new Error("That address is a wallet, not a token. You want the token address, not the pair or the owner.");
+
+    let token = info.token;
+    try {
+      const t = await api(host, "/api/v2/tokens/" + addr);
+      if (t) token = Object.assign({}, token, t);
+    } catch (e) { /* optional */ }
+
+    setStatus("Finding who made it…");
+    let born = null, operator = null, factory = null;
+    const madeBy = info.creator_address_hash || null;
+    if (info.creation_transaction_hash) {
+      const tx = await api(host, "/api/v2/transactions/" + info.creation_transaction_hash);
+      if (tx) {
+        born = tx.timestamp;
+        operator = tx.from && tx.from.hash ? tx.from.hash : null;
+      }
+    }
+    if (madeBy && operator && !same(madeBy, operator)) factory = madeBy;
+    if (!operator) operator = madeBy;
+    if (!operator) throw new Error("No owner recorded for this contract, so there's no money trail to follow.");
+
+    setStatus("Following the money…");
+    const outRes = await api(host, "/api/v2/addresses/" + operator + "/transactions?filter=from");
+    const out = (outRes && outRes.items) || [];
+    const inRes = await api(host, "/api/v2/addresses/" + operator + "/transactions?filter=to");
+
+    const incoming = ((inRes && inRes.items) || []).filter((t) =>
+      eth(t.value) > 0 && t.from && t.from.hash && !same(t.from.hash, operator)
+    );
+    incoming.sort((a, b) => eth(b.value) - eth(a.value));
+    const seed = incoming[0] || null;
+    const funder = seed && seed.from ? seed.from.hash : null;
+    const putIn = seed ? eth(seed.value) : 0;
+
+    const takenBack = born
+      ? incoming
+          .filter((t) => new Date(t.timestamp) > new Date(born) && (!seed || t.hash !== seed.hash))
+          .reduce((s, t) => s + eth(t.value), 0)
+      : 0;
+
+    const spawned = out.filter((t) => t.created_contract || (!t.to && t.status === "ok"));
+    const liquidity = out.filter((t) => /liquid|position|pool|mint|burn|collect/i.test(t.method || ""));
+
+    // Two independent reads on the factory. Calls often arrive as internal
+    // transactions, so distinct callers undercounts badly — the counter is the
+    // more reliable of the two, and neither is trusted enough to raise an alarm.
+    let users = 0, factoryRuns = 0, factoryTx = null;
+    if (factory) {
+      setStatus("Checking the factory…");
+      try {
+        const c = await api(host, "/api/v2/addresses/" + factory + "/counters");
+        if (c && c.transactions_count != null) factoryTx = Number(c.transactions_count);
+      } catch (e) { /* optional */ }
+      try {
+        const f = await api(host, "/api/v2/addresses/" + factory + "/transactions?filter=to");
+        const items = (f && f.items) || [];
+        const callers = new Set();
+        items.forEach((t) => { if (t.from && t.from.hash) callers.add(t.from.hash.toLowerCase()); });
+        users = callers.size;
+        const hour = Date.now() - 60 * MIN;
+        factoryRuns = items.filter((t) => new Date(t.timestamp).getTime() > hour).length;
+      } catch (e) { /* optional */ }
+    }
+
+    render(judge({ token, operator, factory, users, factoryRuns, factoryTx, funder, seed, born, spawned, liquidity, putIn, takenBack }));
+  } catch (err) {
+    const m = (err && err.message) || "";
+    fail(/fetch|network|load failed/i.test(m)
+      ? "Couldn't reach Blockscout. Either you're offline, or this network's explorer is blocking browser requests."
+      : (m || "Something went wrong. Try again in a moment."));
+  } finally {
+    setStatus("");
+    $("run").disabled = false;
+  }
+}
+
+/* ---------- judgement ---------- */
+
+function judge(d) {
+  const flags = [];
+  const events = [];
+  const ageMin = d.born ? (Date.now() - new Date(d.born)) / MIN : null;
+  const veryNew = ageMin !== null && ageMin < 120;
+
+  if (d.born) events.push({ at: d.born, event: "The token was created." });
+
+  if (d.seed) {
+    events.push({ at: d.seed.timestamp, event: "The owner was sent " + money(d.putIn) + " by " + short(d.funder) + "." });
+    const mins = d.born ? (new Date(d.born) - new Date(d.seed.timestamp)) / MIN : null;
+    const tight = mins !== null && mins > -120 && mins < 180;
+    const size = dollars(d.putIn);
+
+    if (tight && size !== null && size >= LARGE) {
+      flags.push({
+        level: "high",
+        title: "Serious money arrived right before launch",
+        text: "The owner's wallet received " + money(d.putIn) + " " + gap(d.born, d.seed.timestamp) +
+              " either side of the token being created. That is a financed operation, not somebody trying an idea."
+      });
+    } else if (tight && size !== null && size >= SMALL) {
+      flags.push({
+        level: "medium",
+        title: "Funded shortly before launch",
+        text: "The owner got " + money(d.putIn) + " " + gap(d.born, d.seed.timestamp) +
+              " either side of creating this. Enough to stage a launch with, though not a large operation."
+      });
+    } else if (tight) {
+      flags.push({
+        level: "info",
+        title: "Funded shortly before launch, but barely",
+        text: "The owner got " + money(d.putIn) + " just before creating this. At that size it's closer to gas money than a war chest. On its own it means very little."
+      });
+    }
+  } else {
+    flags.push({
+      level: "info",
+      title: "No outside money found",
+      text: "Nobody else sent this wallet ETH recently. It either funded itself, was topped up long ago, or came in from another chain this page can't see."
+    });
+  }
+
+  if (d.factory) {
+    const shared = d.users >= 5 || (d.factoryTx !== null && d.factoryTx >= BUSY_FACTORY);
+    if (shared) {
+      const evidence = d.factoryTx !== null && d.factoryTx >= BUSY_FACTORY
+        ? "It has handled " + d.factoryTx.toLocaleString() + " transactions"
+        : "At least " + plural(d.users, "person has", "different people have") + " used it";
+      flags.push({
+        level: "info",
+        title: "Made on a public launchpad",
+        text: evidence + (d.factoryRuns >= 2 ? ", including " + plural(d.factoryRuns, "run", "runs") + " in the last hour" : "") +
+              ". On this chain most tokens are made this way, so it tells you nothing about this one in particular."
+      });
+    } else {
+      flags.push({
+        level: "medium",
+        title: "Made by a factory that looks quiet",
+        text: "This came from a token factory with little visible traffic. That can mean a tool built for one operator — or just that its calls route through something this page can't follow. Treat it as a question, not an answer."
+      });
+    }
+  }
+
+  if (d.spawned.length >= 2) {
+    flags.push({
+      level: "high",
+      title: "The owner set up extra wallets",
+      text: "They created " + plural(d.spawned.length, "helper contract", "helper contracts") + " around launch. That's how someone buys their own token across several addresses so the early buyer list looks busy."
+    });
+    const first = d.spawned[d.spawned.length - 1];
+    events.push({ at: first.timestamp, event: "The owner set up " + plural(d.spawned.length, "helper contract", "helper contracts") + "." });
+  }
+
+  if (d.liquidity.length) {
+    events.push({ at: d.liquidity[0].timestamp, event: "The owner touched the trading pool." });
+  }
+
+  if (d.takenBack > 0) {
+    const size = dollars(d.takenBack);
+    const ahead = d.putIn > 0 && d.takenBack > d.putIn * 1.2;
+    const worthIt = size === null || size >= SMALL;
+    flags.push({
+      level: ahead && worthIt ? "high" : "medium",
+      title: ahead ? "The owner is already in profit" : "The owner has taken money out",
+      text: ahead
+        ? "They were sent " + money(d.putIn) + " and have since pulled " + money(d.takenBack) +
+          " back out on top of it. They've made their money. Anything you pay now goes to whoever is left holding."
+        : "They've pulled " + money(d.takenBack) + " out since creating it, over and above what they were funded with. Worth watching whether that continues."
+    });
+  }
+
+  const holders = Number((d.token && (d.token.holders || d.token.holders_count)) || 0);
+  if (holders > 0 && holders < 200) {
+    flags.push({
+      level: veryNew ? "info" : "medium",
+      title: "Hardly anyone owns it",
+      text: veryNew
+        ? "Only " + plural(holders, "wallet", "wallets") + " so far, which is normal this early. If it's still this thin in a few hours, that's the real warning."
+        : "Only " + plural(holders, "wallet holds", "wallets hold") + " this, and it's had time to attract more. A few of them can move the price however they like."
+    });
+  }
+
+  if (veryNew) {
+    flags.push({
+      level: "info",
+      title: "It's too new to have a history",
+      text: "This is " + since(d.born) + " old. The strongest signal — money flowing back out to the owner — takes hours to appear. A quiet result now means unknown, not safe."
+    });
+  }
+
+  const highs = flags.filter((f) => f.level === "high").length;
+  const mediums = flags.filter((f) => f.level === "medium").length;
+
+  let risk, head, line;
+  if (highs >= 2) {
+    risk = "high";
+    head = "Walk away";
+    line = "One person set this up, paid for it, and is positioned to take the money. Whatever you spend here ends up with them.";
+  } else if (highs === 1) {
+    risk = "medium";
+    head = "Be careful";
+    line = "Something here looks staged rather than organic. Read the point marked in red before you decide anything.";
+  } else if (mediums >= 2) {
+    risk = "medium";
+    head = "Be careful";
+    line = "Nothing outright damning, but several things worth knowing before you put money in.";
+  } else if (veryNew) {
+    risk = "info";
+    head = "Too early to tell";
+    line = "Nothing alarming turned up, but this token is minutes old and the trail that matters hasn't formed yet. Run it again in an hour.";
+  } else if (mediums === 1) {
+    risk = "medium";
+    head = "One thing to look at";
+    line = "Mostly ordinary, with a single point worth reading before you decide.";
+  } else {
+    risk = "low";
+    head = "Nothing obviously wrong";
+    line = "The way this was put together looks ordinary. That says nothing about where the price goes — plenty of honest launches go to zero.";
+  }
+
+  events.sort((a, b) => new Date(a.at) - new Date(b.at));
+
+  const watch = [];
+  if (d.funder) watch.push({ label: "Paid for the launch", addr: d.funder });
+  if (d.operator) watch.push({ label: "Made the token", addr: d.operator });
+  if (d.factory) watch.push({ label: "The factory it came from", addr: d.factory });
+
+  return {
+    risk, head, line, flags, watch,
+    timeline: events.map((e) => ({ time: clock(e.at), event: e.event })),
+    facts: [
+      ["Token", ((d.token && d.token.name) || "Not named yet") + ((d.token && d.token.symbol) ? " (" + d.token.symbol + ")" : "")],
+      ["People holding it", holders ? holders.toLocaleString() : "—"],
+      ["Created", d.born ? clock(d.born) : "—"],
+      ["Made by", short(d.operator)],
+      ["Paid for by", d.funder ? short(d.funder) : "Nobody else — self-funded"],
+      ["Money in", d.seed ? money(d.putIn) : "—"],
+      ["Money back out", d.takenBack > 0 ? money(d.takenBack) : "None yet"]
+    ]
+  };
+}
+
+function render(r) {
+  $("verdict").className = "verdict " + r.risk;
+  $("verdictHead").textContent = r.head;
+  $("verdictText").textContent = r.line;
+  $("facts").innerHTML = r.facts.map(([k, v]) => "<div><dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd></div>").join("");
+  $("timelineBox").hidden = !r.timeline.length;
+  $("timeline").innerHTML = r.timeline.map((s) => "<li><time>" + esc(s.time) + "</time>" + esc(s.event) + "</li>").join("");
+  $("flags").innerHTML = r.flags.map((f) =>
+    '<li><span class="dot ' + f.level + '"></span><span><strong>' + esc(f.title) +
+    '</strong><span class="body">' + esc(f.text) + "</span></span></li>").join("");
+  $("watchBox").hidden = !r.watch.length;
+  $("watch").innerHTML = r.watch.map((w) =>
+    '<div class="addr"><small>' + esc(w.label) + "</small>" + esc(w.addr) + "</div>").join("");
+  $("report").hidden = false;
+}
+
+$("run").addEventListener("click", check);
+$("refresh").addEventListener("click", loadFeed);
+$("chain").addEventListener("change", loadFeed);
+$("addr").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+
+loadEthPrice();
+loadFeed();
+</script>
+</body>
+</html>
